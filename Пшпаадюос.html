@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iOS Калькулятор с AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+        
+        .calculator {
+            width: 100vw;
+            height: 100vh;
+            max-width: 100%;
+            max-height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 20px 5px;
+            height: 60px;
+            flex-shrink: 0;
+        }
+        
+        .ai-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 18px;
+            padding: 8px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .ai-button:active {
+            transform: scale(0.97);
+        }
+        
+        .ai-input-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .ai-input-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .ai-input-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ai-input-field {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            padding: 18px;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 17px;
+            margin-bottom: 25px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.1),
+                0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .ai-input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .ai-input-field:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 122, 255, 0.6);
+            box-shadow: 
+                inset 0 2px 8px rgba(0, 122, 255, 0.15),
+                0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+        
+        .ai-input-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+        
+        .ai-input-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .ai-input-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .ai-input-btn.search {
+            background: rgba(0, 122, 255, 0.2);
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .ai-input-btn.cancel {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .display {
+            padding: 10px 20px 20px;
+            text-align: right;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 0;
+        }
+        
+        .previous-operand {
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.7);
+            min-height: 32px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow: hidden;
+        }
+        
+        .current-operand {
+            font-size: 70px;
+            color: #fff;
+            font-weight: 300;
+            min-height: 80px;
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow: hidden;
+        }
+        
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 12px;
+            padding: 10px 20px 30px;
+            flex-shrink: 0;
+        }
+        
+        button {
+            border: none;
+            border-radius: 50%;
+            height: 80px;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        button:active {
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+        
+        .light-gray {
+            background-color: #a5a5a5;
+            color: #000;
+        }
+        
+        .dark-gray {
+            background-color: #333;
+        }
+        
+        .orange {
+            background-color: #f1a33c;
+        }
+        
+        .zero {
+            grid-column: span 2;
+            border-radius: 40px;
+            justify-content: flex-start;
+            padding-left: 35px;
+        }
+        
+        .operator-active {
+            background-color: #fff;
+            color: #f1a33c;
+        }
+        
+        /* Telegram WebApp стили */
+        .telegram-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: none;
+            border: none;
+        }
+        
+        .telegram-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(0, 136, 204, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1001;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .close-telegram {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-telegram:active {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+        
+        /* Адаптация для очень высоких экранов */
+        @media (min-height: 800px) {
+            .buttons-grid {
+                padding-bottom: 40px;
+            }
+            
+            button {
+                height: 85px;
+            }
+            
+            .zero {
+                padding-left: 40px;
+            }
+            
+            .current-operand {
+                font-size: 80px;
+            }
+            
+            .previous-operand {
+                font-size: 32px;
+            }
+        }
+        
+        /* Адаптация для маленьких экранов */
+        @media (max-height: 700px) {
+            .header {
+                padding: 10px 20px 5px;
+                height: 50px;
+            }
+            
+            .ai-button {
+                height: 32px;
+                padding: 6px 14px;
+                font-size: 14px;
+            }
+            
+            .display {
+                padding: 5px 20px 15px;
+            }
+            
+            .current-operand {
+                font-size: 60px;
+                min-height: 70px;
+            }
+            
+            .previous-operand {
+                font-size: 24px;
+                min-height: 28px;
+            }
+            
+            button {
+                height: 70px;
+                font-size: 30px;
+            }
+            
+            .zero {
+                padding-left: 30px;
+            }
+            
+            .buttons-grid {
+                grid-gap: 10px;
+                padding: 10px 20px 20px;
+            }
+            
+            .ai-input-container {
+                padding: 20px;
+            }
+            
+            .ai-input-title {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+            
+            .ai-input-field {
+                padding: 14px;
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .ai-input-btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            button {
+                height: 65px;
+                font-size: 28px;
+            }
+            
+            .current-operand {
+                font-size: 55px;
+                min-height: 65px;
+            }
+            
+            .previous-operand {
+                font-size: 22px;
+                min-height: 26px;
+            }
+        }
+        
+        /* Предотвращение выделения и зума на мобильных */
+        @media (max-width: 768px) {
+            .calculator {
+                touch-action: pan-x pan-y;
+            }
+            
+            input, textarea {
+                font-size: 16px !important; /* Предотвращает зум на iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="header">
+            <button class="ai-button" id="aiButton">AI-решение</button>
+        </div>
+        
+        <!-- Оверлей для ввода текста -->
+        <div class="ai-input-overlay" id="aiInputOverlay">
+            <div class="ai-input-container">
+                <div class="ai-input-title">Введите задачу или уравнение</div>
+                <input type="text" class="ai-input-field" id="aiInputField" 
+                       placeholder="Пример: 2x+5=13 или интеграл от x^2" 
+                       autocomplete="off">
+                <div class="ai-input-buttons">
+                    <button class="ai-input-btn cancel" id="cancelAiInput">Отмена</button>
+                    <button class="ai-input-btn search" id="searchAiInput">Найти решение</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="display">
+            <div class="previous-operand"></div>
+            <div class="current-operand">0</div>
+        </div>
+        
+        <div class="buttons-grid">
+            <button class="light-gray" data-action="clear">AC</button>
+            <button class="light-gray" data-action="toggle-sign">±</button>
+            <button class="light-gray" data-action="percent">%</button>
+            <button class="orange" data-action="divide">÷</button>
+            
+            <button class="dark-gray" data-number="7">7</button>
+            <button class="dark-gray" data-number="8">8</button>
+            <button class="dark-gray" data-number="9">9</button>
+            <button class="orange" data-action="multiply">×</button>
+            
+            <button class="dark-gray" data-number="4">4</button>
+            <button class="dark-gray" data-number="5">5</button>
+            <button class="dark-gray" data-number="6">6</button>
+            <button class="orange" data-action="subtract">−</button>
+            
+            <button class="dark-gray" data-number="1">1</button>
+            <button class="dark-gray" data-number="2">2</button>
+            <button class="dark-gray" data-number="3">3</button>
+            <button class="orange" data-action="add">+</button>
+            
+            <button class="dark-gray zero" data-number="0">0</button>
+            <button class="dark-gray" data-action="decimal">.</button>
+            <button class="orange" data-action="equals">=</button>
+        </div>
+    </div>
+
+    <!-- Telegram WebApp Frame -->
+    <iframe id="telegramFrame" class="telegram-frame" allow="fullscreen"></iframe>
+
+    <script>
+        // Telegram WebApp API
+        let tg = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand(); // Раскрываем на весь экран
+            tg.enableClosingConfirmation(); // Подтверждение закрытия
+            tg.disableVerticalSwipes(); // Отключаем вертикальные свайпы
+            
+            // Устанавливаем тему
+            if (tg.colorScheme === 'dark') {
+                document.documentElement.style.setProperty('--tg-bg-color', '#212121');
+            }
+        }
+
+        // Предотвращение зума на iOS
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы калькулятора
+            const currentOperandElement = document.querySelector('.current-operand');
+            const previousOperandElement = document.querySelector('.previous-operand');
+            const aiButton = document.getElementById('aiButton');
+            const aiInputOverlay = document.getElementById('aiInputOverlay');
+            const aiInputField = document.getElementById('aiInputField');
+            const cancelAiInputButton = document.getElementById('cancelAiInput');
+            const searchAiInputButton = document.getElementById('searchAiInput');
+            const telegramFrame = document.getElementById('telegramFrame');
+            const numberButtons = document.querySelectorAll('[data-number]');
+            const operationButtons = document.querySelectorAll('[data-action]');
+            const allButtons = document.querySelectorAll('.buttons-grid button');
+            
+            // Состояние калькулятора
+            let currentOperand = '0';
+            let previousOperand = '';
+            let operation = null;
+            let resetCurrentOperand = false;
+            
+            // Обновление дисплея
+            function updateDisplay() {
+                currentOperandElement.textContent = currentOperand;
+                previousOperandElement.textContent = previousOperand;
+                
+                // Обновляем активный оператор
+                allButtons.forEach(button => {
+                    button.classList.remove('operator-active');
+                });
+                
+                if (operation) {
+                    const activeOperator = document.querySelector(`[data-action="${operation}"]`);
+                    if (activeOperator) {
+                        activeOperator.classList.add('operator-active');
+                    }
+                }
+            }
+            
+            // Показать поле ввода AI
+            function showAIInput() {
+                aiInputOverlay.style.display = 'flex';
+                setTimeout(() => {
+                    aiInputField.value = '';
+                    aiInputField.focus();
+                    
+                    // Если есть текущее значение в калькуляторе, используем его
+                    if (currentOperand !== '0' && currentOperand !== '') {
+                        aiInputField.value = currentOperand;
+                    }
+                }, 10);
+            }
+            
+            // Скрыть поле ввода AI
+            function hideAIInput() {
+                aiInputOverlay.style.display = 'none';
+            }
+            
+            // Выполнить AI поиск
+            function performAISearch() {
+                const query = aiInputField.value.trim();
+                
+                if (!query) {
+                    hideAIInput();
+                    return;
+                }
+                
+                // Форматируем запрос для URL
+                const formattedQuery = formatSearchQuery(query);
+                
+                // Открываем поиск
+                openYandexSearch(formattedQuery, query);
+                
+                // Скрываем оверлей
+                hideAIInput();
+                
+                // Сохраняем запрос в истории калькулятора
+                previousOperand = `Поиск: ${query}`;
+                currentOperand = '0';
+                resetCurrentOperand = true;
+                updateDisplay();
+            }
+            
+            // Форматирование запроса для поиска
+            function formatSearchQuery(query) {
+                // Очищаем от лишних пробелов
+                query = query.trim();
+                
+                // Разделяем на слова
+                const words = query.split(/\s+/);
+                
+                // Форматируем для URL
+                if (words.length === 1) {
+                    // Одно слово
+                    return encodeURIComponent(words[0]);
+                } else {
+                    // Несколько слов - соединяем через +
+                    return encodeURIComponent(words.join('+'));
+                }
+            }
+            
+            // Открытие Yandex поиска
+            function openYandexSearch(formattedQuery, originalQuery) {
+                try {
+                    if (!formattedQuery) return;
+                    
+                    // Формируем URL для Yandex поиска
+                    const yandexUrl = `https://yandex.ru/search/touch/?text=${formattedQuery}`;
+                    
+                    // Проверяем, находимся ли в Telegram WebApp
+                    if (tg) {
+                        // В Telegram открываем встроенный браузер
+                        telegramFrame.style.display = 'block';
+                        telegramFrame.src = yandexUrl;
+                        
+                        // Добавляем кнопку закрытия
+                        if (!document.querySelector('.telegram-header')) {
+                            const header = document.createElement('div');
+                            header.className = 'telegram-header';
+                            header.innerHTML = `
+                                <span style="font-weight: 500; font-size: 15px;">AI поиск: ${originalQuery.substring(0, 30)}${originalQuery.length > 30 ? '...' : ''}</span>
+                                <button class="close-telegram">×</button>
+                            `;
+                            document.body.appendChild(header);
+                            
+                            // Обработка закрытия
+                            document.querySelector('.close-telegram').addEventListener('click', closeTelegramFrame);
+                        } else {
+                            document.querySelector('.telegram-header').style.display = 'flex';
+                            document.querySelector('.telegram-header span').textContent = 
+                                `AI поиск: ${originalQuery.substring(0, 30)}${originalQuery.length > 30 ? '...' : ''}`;
+                        }
+                    } else {
+                        // В обычном браузере открываем в новой вкладке
+                        window.open(yandexUrl, '_blank');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при открытии поиска:', error);
+                }
+            }
+            
+            // Закрыть Telegram frame
+            function closeTelegramFrame() {
+                telegramFrame.style.display = 'none';
+                telegramFrame.src = '';
+                if (document.querySelector('.telegram-header')) {
+                    document.querySelector('.telegram-header').style.display = 'none';
+                }
+            }
+            
+            // Добавление цифры
+            function addNumber(number) {
+                if (currentOperand === '0' || resetCurrentOperand) {
+                    currentOperand = number;
+                    resetCurrentOperand = false;
+                } else {
+                    currentOperand += number;
+                }
+                updateDisplay();
+            }
+            
+            // Добавление десятичной точки
+            function addDecimal() {
+                if (resetCurrentOperand) {
+                    currentOperand = '0.';
+                    resetCurrentOperand = false;
+                } else if (!currentOperand.includes('.')) {
+                    currentOperand += '.';
+                }
+                updateDisplay();
+            }
+            
+            // Очистка всего
+            function clearAll() {
+                currentOperand = '0';
+                previousOperand = '';
+                operation = null;
+                updateDisplay();
+            }
+            
+            // Смена знака
+            function toggleSign() {
+                if (currentOperand !== '0') {
+                    if (currentOperand.startsWith('-')) {
+                        currentOperand = currentOperand.substring(1);
+                    } else {
+                        currentOperand = '-' + currentOperand;
+                    }
+                }
+                updateDisplay();
+            }
+            
+            // Процент
+            function calculatePercent() {
+                const value = parseFloat(currentOperand);
+                currentOperand = (value / 100).toString();
+                updateDisplay();
+            }
+            
+            // Выбор операции
+            function chooseOperation(op) {
+                if (currentOperand === '0' && op !== 'equals') return;
+                
+                if (operation && !resetCurrentOperand) {
+                    calculateResult();
+                }
+                
+                operation = op;
+                previousOperand = `${currentOperand} ${getOperationSymbol(op)}`;
+                resetCurrentOperand = true;
+                updateDisplay();
+            }
+            
+            // Получение символа операции
+            function getOperationSymbol(op) {
+                switch(op) {
+                    case 'add': return '+';
+                    case 'subtract': return '−';
+                    case 'multiply': return '×';
+                    case 'divide': return '÷';
+                    default: return '';
+                }
+            }
+            
+            // Вычисление результата
+            function calculateResult() {
+                let computation;
+                const prev = parseFloat(previousOperand);
+                const current = parseFloat(currentOperand);
+                
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch(operation) {
+                    case 'add':
+                        computation = prev + current;
+                        break;
+                    case 'subtract':
+                        computation = prev - current;
+                        break;
+                    case 'multiply':
+                        computation = prev * current;
+                        break;
+                    case 'divide':
+                        if (current === 0) {
+                            alert("Ошибка: деление на ноль!");
+                            clearAll();
+                            return;
+                        }
+                        computation = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Форматирование результата
+                currentOperand = formatResult(computation);
+                previousOperand = '';
+                operation = null;
+                resetCurrentOperand = true;
+                updateDisplay();
+            }
+            
+            // Форматирование результата
+            function formatResult(num) {
+                let strNum = num.toString();
+                
+                if (strNum.length > 12) {
+                    if (Math.abs(num) > 1e12 || Math.abs(num) < 1e-6) {
+                        return num.toExponential(6);
+                    }
+                    
+                    if (strNum.includes('.')) {
+                        const integerPart = strNum.split('.')[0];
+                        const decimalPart = strNum.split('.')[1];
+                        
+                        if (integerPart.length >= 12) {
+                            return integerPart.substring(0, 12);
+                        }
+                        
+                        const maxDecimalLength = 12 - integerPart.length - 1;
+                        return integerPart + '.' + decimalPart.substring(0, maxDecimalLength);
+                    }
+                    
+                    return strNum.substring(0, 12);
+                }
+                
+                return strNum;
+            }
+            
+            // Обработка нажатий на цифровые кнопки
+            numberButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    addNumber(button.getAttribute('data-number'));
+                });
+            });
+            
+            // Обработка нажатий на кнопки операций
+            operationButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const action = button.getAttribute('data-action');
+                    
+                    switch(action) {
+                        case 'clear':
+                            clearAll();
+                            break;
+                        case 'toggle-sign':
+                            toggleSign();
+                            break;
+                        case 'percent':
+                            calculatePercent();
+                            break;
+                        case 'decimal':
+                            addDecimal();
+                            break;
+                        case 'equals':
+                            calculateResult();
+                            break;
+                        default:
+                            chooseOperation(action);
+                            break;
+                    }
+                });
+            });
+            
+            // Обработка кнопки AI
+            aiButton.addEventListener('click', showAIInput);
+            
+            // Обработка кнопок в AI оверлее
+            cancelAiInputButton.addEventListener('click', hideAIInput);
+            searchAiInputButton.addEventListener('click', performAISearch);
+            
+            // Обработка Enter в поле ввода
+            aiInputField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performAISearch();
+                }
+            });
+            
+            // Обработка ESC в поле ввода
+            aiInputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    hideAIInput();
+                }
+            });
+            
+            // Обработка клика вне оверлея
+            aiInputOverlay.addEventListener('click', function(e) {
+                if (e.target === aiInputOverlay) {
+                    hideAIInput();
+                }
+            });
+            
+            // Обработка клавиатуры для калькулятора
+            document.addEventListener('keydown', event => {
+                const key = event.key;
+                
+                // Если открыт AI оверлей, не обрабатываем клавиши калькулятора
+                if (aiInputOverlay.style.display === 'flex') {
+                    return;
+                }
+                
+                if (key >= '0' && key <= '9') {
+                    addNumber(key);
+                } else if (key === '.') {
+                    addDecimal();
+                } else if (key === '+') {
+                    chooseOperation('add');
+                } else if (key === '-') {
+                    chooseOperation('subtract');
+                } else if (key === '*') {
+                    chooseOperation('multiply');
+                } else if (key === '/') {
+                    event.preventDefault();
+                    chooseOperation('divide');
+                } else if (key === 'Enter' || key === '=') {
+                    calculateResult();
+                } else if (key === 'Escape') {
+                    clearAll();
+                } else if (key === '%') {
+                    calculatePercent();
+                } else if (key === 'Backspace') {
+                    if (currentOperand.length > 1) {
+                        currentOperand = currentOperand.slice(0, -1);
+                    } else {
+                        currentOperand = '0';
+                    }
+                    updateDisplay();
+                }
+            });
+            
+            // Закрытие Telegram frame при нажатии ESC
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && telegramFrame.style.display === 'block') {
+                    closeTelegramFrame();
+                }
+            });
+            
+            // Инициализация Telegram WebApp
+            function initTelegramWebApp() {
+                if (tg) {
+                    console.log('Telegram WebApp инициализирован', tg.initData);
+                }
+            }
+            
+            // Инициализация
+            initTelegramWebApp();
+            updateDisplay();
+            
+            // Настройка размеров под экран
+            function adjustLayout() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            
+            window.addEventListener('resize', adjustLayout);
+            window.addEventListener('orientationchange', adjustLayout);
+            adjustLayout();
+        });
+    </script>
+</body>
+</html>
