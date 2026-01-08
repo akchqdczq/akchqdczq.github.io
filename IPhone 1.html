@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TelegaOS - Рабочий стол iPhone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background-image: url('https://i.postimg.cc/NjYRkPCs/IMG-0052.jpg');
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease;
+            background-attachment: fixed;
+        }
+
+        body.dark-mode {
+            background-color: #1c1c1e;
+        }
+
+        body.light-mode {
+            background-color: #f2f2f7;
+            color: #000;
+        }
+
+        body.light-mode .app-name {
+            color: #000;
+            text-shadow: none;
+        }
+
+        body.light-mode .widget {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .dock {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .settings-section {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+        }
+
+        body.light-mode .settings-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .item-subtitle {
+            color: #666;
+        }
+
+        body.light-mode .settings-header {
+            background: rgba(255, 255, 255, 0.95);
+            color: #000;
+        }
+
+        body.light-mode .back-btn {
+            color: #007aff;
+        }
+
+        .home-screen {
+            height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .app-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(80px, 1fr);
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 10px 5px;
+            position: relative;
+            touch-action: none;
+        }
+
+        .app-icon.dragging {
+            z-index: 1000;
+            opacity: 0.8;
+            transform: scale(1.1);
+            transition: transform 0.1s;
+        }
+
+        .app-icon:hover, .app-icon:active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .app-icon:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .app-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            margin-bottom: 5px;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .app-icon .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            pointer-events: none;
+        }
+
+        .app-icon .icon-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            background-color: #007aff;
+            background-image: url('https://i.postimg.cc/kgtLWGHQ/IMG-0053.jpg');
+            pointer-events: none;
+        }
+
+        .app-name {
+            font-size: 12px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .delete-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff3b30;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1001;
+            display: none;
+        }
+
+        .edit-mode .delete-badge {
+            display: flex;
+        }
+
+        .widget {
+            grid-column: span 2;
+            grid-row: span 2;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 15px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            touch-action: none;
+        }
+
+        .widget.dragging {
+            z-index: 1000;
+            opacity: 0.8;
+            transform: scale(1.05);
+            transition: transform 0.1s;
+        }
+
+        .widget:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        body.light-mode .widget:hover {
+            background-color: rgba(255, 255, 255, 0.85);
+        }
+
+        .widget-size-control {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .edit-mode .widget-size-control {
+            opacity: 1;
+        }
+
+        .size-btn, .delete-widget-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .widget.small {
+            grid-column: span 2;
+            grid-row: span 1;
+        }
+
+        .widget.medium {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .widget.large {
+            grid-column: span 4;
+            grid-row: span 2;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .widget-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .widget-content {
+            font-size: 12px;
+        }
+
+        .weather-temp {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .weather-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .forecast {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .forecast {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .forecast-day {
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .dock {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            max-width: 400px;
+            height: 70px;
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        .dock-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .dock-icon img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .dock-icon .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            pointer-events: none;
+        }
+
+        .page-indicators {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .page-dot.active {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.light-mode .page-dot {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        body.light-mode .page-dot.active {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .settings-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body.light-mode .settings-container {
+            background: #f2f2f7;
+        }
+
+        .settings-header {
+            background: rgba(28, 28, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 60px 20px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .settings-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-title {
+            font-size: 34px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #0a84ff;
+            font-size: 17px;
+            cursor: pointer;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .settings-content {
+            padding: 20px;
+        }
+
+        .settings-section {
+            background: rgba(28, 28, 30, 0.7);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        body.light-mode .settings-section {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .settings-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        body.light-mode .settings-item {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.light-mode .settings-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .item-subtitle {
+            font-size: 13px;
+            color: #8e8e93;
+            margin-top: 2px;
+        }
+
+        body.light-mode .item-subtitle {
+            color: #666;
+        }
+
+        .item-value {
+            font-size: 16px;
+            color: #8e8e93;
+        }
+
+        body.light-mode .item-value {
+            color: #666;
+        }
+
+        .chevron {
+            color: #8e8e93;
+            font-size: 14px;
+        }
+
+        body.light-mode .chevron {
+            color: #666;
+        }
+
+        .toggle {
+            width: 51px;
+            height: 31px;
+            border-radius: 20px;
+            background: #3a3a3c;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        body.light-mode .toggle {
+            background: #e5e5ea;
+        }
+
+        .toggle.active {
+            background: #30d158;
+        }
+
+        .toggle-circle {
+            position: absolute;
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active .toggle-circle {
+            transform: translateX(20px);
+        }
+
+        .sub-settings {
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .settings-group {
+            margin-bottom: 30px;
+        }
+
+        .settings-group-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        body.light-mode .slider {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-fill {
+            position: absolute;
+            height: 100%;
+            background: #0a84ff;
+            border-radius: 2px;
+            width: 50%;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            left: 50%;
+        }
+
+        body.light-mode .slider-thumb {
+            background: #007aff;
+        }
+
+        .timer-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .timer-option {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        body.light-mode .timer-option {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .timer-option.active {
+            background: #0a84ff;
+            color: white;
+        }
+
+        .app-protection-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .protected-app {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .protected-app {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .app-icon-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .sound-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .sound-test-btn {
+            padding: 10px 20px;
+            background: #0a84ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .theme-option {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        body.light-mode .theme-option {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .theme-option.active {
+            background: #0a84ff;
+            border-color: #0a84ff;
+            color: white;
+        }
+
+        .storage-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        body.light-mode .storage-bar {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff375f, #ff9500);
+            width: 65%;
+            border-radius: 3px;
+        }
+
+        .qrcode-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .qrcode {
+            width: 200px;
+            height: 200px;
+            background: white;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 15px;
+            line-height: 1.4;
+            padding: 20px;
+            text-align: center;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .airdrop-info {
+            color: #8e8e93;
+            font-size: 14px;
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+
+        body.light-mode .airdrop-info {
+            color: #666;
+        }
+
+        .add-tma-container {
+            padding: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8e8e93;
+            font-size: 14px;
+        }
+
+        body.light-mode .input-group label {
+            color: #666;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        body.light-mode .input-group input {
+            background: white;
+            border: 1px solid #c7c7cc;
+            color: #000;
+        }
+
+        .icon-selection {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .icon-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0 auto;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .icon-option.active {
+            border-color: #0a84ff;
+            transform: scale(1.05);
+        }
+
+        .preview-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 18px;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            background: #007aff;
+            color: white;
+        }
+
+        .add-btn {
+            background: #0a84ff;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: opacity 0.2s;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+
+        .biometric-setup {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .biometric-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            color: #0a84ff;
+        }
+
+        .setup-steps {
+            margin-top: 30px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        body.light-mode .step {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #0a84ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .edit-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .edit-mode .edit-mode-overlay {
+            display: block;
+        }
+
+        .edit-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .edit-mode .edit-controls {
+            opacity: 1;
+        }
+
+        .edit-btn, .done-btn {
+            background: rgba(28, 28, 30, 0.9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(20px);
+        }
+
+        body.light-mode .edit-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+        }
+
+        .done-btn {
+            background: #0a84ff;
+        }
+
+        .blue { background: linear-gradient(135deg, #5ac8fa, #007aff); }
+        .green { background: linear-gradient(135deg, #4cd964, #34c759); }
+        .orange { background: linear-gradient(135deg, #ff9500, #ff7043); }
+        .red { background: linear-gradient(135deg, #ff3b30, #d32f2f); }
+        .purple { background: linear-gradient(135deg, #af52de, #9c27b0); }
+        .teal { background: linear-gradient(135deg, #5ac8fa, #00bcd4); }
+        .yellow { background: linear-gradient(135deg, #ffcc00, #ffb300); }
+        .pink { background: linear-gradient(135deg, #ff2d55, #e91e63); }
+        .gray { background: linear-gradient(135deg, #8e8e93, #5a5a5e); }
+        .indigo { background: linear-gradient(135deg, #5856d6, #4a47b8); }
+        .cyan { background: linear-gradient(135deg, #32d2e9, #00a8ff); }
+
+        .region-select, .ai-select, .theme-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        body.light-mode .region-select,
+        body.light-mode .ai-select,
+        body.light-mode .theme-select {
+            background: white;
+            border: 1px solid #c7c7cc;
+            color: #000;
+        }
+
+        .legal-text {
+            padding: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+            color: #8e8e93;
+        }
+
+        body.light-mode .legal-text {
+            color: #666;
+        }
+
+        .sleep-timer-section {
+            padding: 20px;
+        }
+
+        .notification-app {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .notification-app {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sound-slider, .glass-slider {
+            margin: 20px 0;
+        }
+
+        .folder {
+            position: relative;
+        }
+
+        .folder-icon {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            margin-bottom: 5px;
+        }
+
+        body.light-mode .folder-icon {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .folder-icon .mini-icon {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .mini-icon:nth-child(1) { top: 5px; left: 5px; }
+        .mini-icon:nth-child(2) { top: 5px; right: 5px; }
+        .mini-icon:nth-child(3) { bottom: 5px; left: 5px; }
+        .mini-icon:nth-child(4) { bottom: 5px; right: 5px; }
+
+        .wallpaper-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .wallpaper-item {
+            aspect-ratio: 9/16;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .wallpaper-item.active {
+            border-color: #0a84ff;
+            transform: scale(0.98);
+        }
+
+        .wallpaper-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.2s;
+        }
+
+        body.light-mode .dropzone {
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .dropzone:hover {
+            border-color: #0a84ff;
+            background: rgba(10, 132, 255, 0.05);
+        }
+
+        .dropzone-icon {
+            font-size: 40px;
+            color: #0a84ff;
+            margin-bottom: 10px;
+        }
+
+        .notification-settings {
+            padding: 20px;
+        }
+
+        .storage-info {
+            padding: 20px;
+        }
+
+        .storage-details {
+            margin-top: 20px;
+        }
+
+        .storage-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .storage-item {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .clear-cache-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .purchase-btn {
+            background: linear-gradient(135deg, #ffd60a, #ff9f0a);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .settings-history {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .settings-history {
+            background: rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .history-title {
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Главный экран -->
+    <div class="home-screen" id="homeScreen">
+        <!-- Сетка приложений и виджетов -->
+        <div class="app-grid" id="appGrid">
+            <!-- Виджет погоды -->
+            <div class="widget medium" data-id="weather" data-size="medium">
+                <div class="widget-header">
+                    <div class="widget-title">Погода</div>
+                    <i class="fas fa-sun" style="color: #ffcc00;"></i>
+                </div>
+                <div class="widget-content">
+                    <div class="weather-temp" id="currentTemp">+22°</div>
+                    <div class="weather-desc">Солнечно • Москва</div>
+                    <div class="forecast">
+                        <div class="forecast-day">
+                            <div>СР</div>
+                            <div style="margin-top: 5px;">+24°</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div>ЧТ</div>
+                            <div style="margin-top: 5px;">+21°</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div>ПТ</div>
+                            <div style="margin-top: 5px;">+19°</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div>СБ</div>
+                            <div style="margin-top: 5px;">+23°</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="widget-size-control">
+                    <div class="size-btn" onclick="resizeWidget('weather', 'small')">S</div>
+                    <div class="size-btn" onclick="resizeWidget('weather', 'medium')">M</div>
+                    <div class="size-btn" onclick="resizeWidget('weather', 'large')">L</div>
+                    <div class="delete-widget-btn" onclick="removeWidget('weather')">×</div>
+                </div>
+            </div>
+            
+            <!-- Приложения -->
+            <div class="app-icon" data-id="calculator" onclick="openApp('calculator')">
+                <div class="icon orange">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div class="app-name">Калькулятор</div>
+                <div class="delete-badge" onclick="removeApp('calculator')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="photos" onclick="openApp('photos')">
+                <div class="icon teal">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="app-name">Фото</div>
+                <div class="delete-badge" onclick="removeApp('photos')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="camera" onclick="openApp('camera')">
+                <div class="icon gray">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="app-name">Камера</div>
+                <div class="delete-badge" onclick="removeApp('camera')">×</div>
+            </div>
+            
+            <!-- Виджет заметок -->
+            <div class="widget medium" data-id="notes" data-size="medium">
+                <div class="widget-header">
+                    <div class="widget-title">Заметки</div>
+                    <i class="fas fa-sticky-note" style="color: #ffcc00;"></i>
+                </div>
+                <div class="widget-content">
+                    <div>• Позвонить маме</div>
+                    <div>• Купить продукты</div>
+                    <div>• Встреча в 15:00</div>
+                    <div>• Оплатить счета</div>
+                    <div style="margin-top: 10px; color: #aaa; font-size: 11px;">
+                        Всего заметок: 12
+                    </div>
+                </div>
+                <div class="widget-size-control">
+                    <div class="size-btn" onclick="resizeWidget('notes', 'small')">S</div>
+                    <div class="size-btn" onclick="resizeWidget('notes', 'medium')">M</div>
+                    <div class="size-btn" onclick="resizeWidget('notes', 'large')">L</div>
+                    <div class="delete-widget-btn" onclick="removeWidget('notes')">×</div>
+                </div>
+            </div>
+            
+            <!-- Папка с играми -->
+            <div class="app-icon folder" data-id="games" onclick="openFolder('games')">
+                <div class="folder-icon">
+                    <div class="mini-icon yellow"><i class="fas fa-gamepad"></i></div>
+                    <div class="mini-icon green"><i class="fas fa-dice"></i></div>
+                    <div class="mini-icon blue"><i class="fas fa-chess"></i></div>
+                    <div class="mini-icon red"><i class="fas fa-puzzle-piece"></i></div>
+                </div>
+                <div class="app-name">Игры</div>
+                <div class="delete-badge" onclick="removeApp('games')">×</div>
+            </div>
+            
+            <!-- Остальные приложения -->
+            <div class="app-icon" data-id="settings" onclick="openSettings()">
+                <div class="icon gray">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="app-name">Настройки</div>
+                <div class="delete-badge" onclick="removeApp('settings')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="maps" onclick="openApp('maps')">
+                <div class="icon blue">
+                    <i class="fas fa-map"></i>
+                </div>
+                <div class="app-name">Карты</div>
+                <div class="delete-badge" onclick="removeApp('maps')">×</div>
+            </div>
+            
+            <!-- ФИКС: Иконка Appss с правильным отображением -->
+            <div class="app-icon" data-id="appss" onclick="openApp('appss')">
+                <div class="icon-img"></div>
+                <div class="app-name">Appss</div>
+                <div class="delete-badge" onclick="removeApp('appss')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="messages" onclick="openApp('messages')">
+                <div class="icon green">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <div class="app-name">Сообщения</div>
+                <div class="delete-badge" onclick="removeApp('messages')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="mail" onclick="openApp('mail')">
+                <div class="icon blue">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="app-name">Почта</div>
+                <div class="delete-badge" onclick="removeApp('mail')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="music" onclick="openApp('music')">
+                <div class="icon pink">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="app-name">Музыка</div>
+                <div class="delete-badge" onclick="removeApp('music')">×</div>
+            </div>
+            
+            <div class="app-icon" data-id="safari" onclick="openApp('safari')">
+                <div class="icon blue">
+                    <i class="fas fa-compass"></i>
+                </div>
+                <div class="app-name">Safari</div>
+                <div class="delete-badge" onclick="removeApp('safari')">×</div>
+            </div>
+        </div>
+        
+        <!-- Индикаторы страниц -->
+        <div class="page-indicators">
+            <div class="page-dot active"></div>
+            <div class="page-dot"></div>
+            <div class="page-dot"></div>
+        </div>
+    </div>
+    
+    <!-- Док -->
+    <div class="dock">
+        <div class="dock-icon" onclick="openApp('phone')">
+            <div class="icon green">
+                <i class="fas fa-phone"></i>
+            </div>
+        </div>
+        
+        <div class="dock-icon" onclick="openApp('safari')">
+            <div class="icon blue">
+                <i class="fas fa-globe"></i>
+            </div>
+        </div>
+        
+        <div class="dock-icon" onclick="openApp('messages')">
+            <div class="icon green">
+                <i class="fas fa-comments"></i>
+            </div>
+        </div>
+        
+        <div class="dock-icon" onclick="openApp('music')">
+            <div class="icon pink">
+                <i class="fas fa-headphones"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Элементы управления редактированием -->
+    <div class="edit-controls">
+        <button class="edit-btn" onclick="toggleEditMode()">Редактировать</button>
+        <button class="done-btn" onclick="toggleEditMode()" style="display: none;">Готово</button>
+    </div>
+    
+    <div class="edit-mode-overlay" onclick="toggleEditMode()"></div>
+    
+    <!-- Настройки iOS -->
+    <div class="settings-container" id="settingsContainer">
+        <div class="settings-header">
+            <button class="back-btn" onclick="goBackInSettings()">
+                <i class="fas fa-chevron-left"></i> Назад
+            </button>
+            <div class="settings-title" id="settingsTitle">
+                Настройки
+            </div>
+        </div>
+        
+        <div class="settings-history" id="settingsHistory" style="display: none;">
+            <i class="fas fa-cog"></i>
+            <div class="history-title" id="historyTitle">Настройки</div>
+        </div>
+        
+        <div class="settings-content" id="settingsContent">
+            <!-- Основные настройки будут загружены динамически -->
+        </div>
+    </div>
+    
+    <script>
+        // Конфигурация приложений
+        const apps = {
+            'calculator': { url: 'https://t.me/TeIegaaBot/calculator', name: 'Калькулятор' },
+            'photos': { url: 'https://t.me/', name: 'Фото' },
+            'camera': { url: 'https://t.me/', name: 'Камера' },
+            'games': { url: '#', name: 'Игры' },
+            'maps': { url: 'https://maps.google.com', name: 'Карты' },
+            'appss': { url: 'https://t.me/appss/store?startapp', name: 'Appss' },
+            'messages': { url: 'https://t.me/', name: 'Сообщения' },
+            'mail': { url: 'https://mail.google.com', name: 'Почта' },
+            'music': { url: 'https://music.youtube.com', name: 'Музыка' },
+            'safari': { url: 'https://google.com', name: 'Safari' },
+            'phone': { url: 'tel:', name: 'Телефон' },
+            'settings': { url: '#', name: 'Настройки' }
+        };
+
+        // Состояние приложения
+        let state = {
+            editMode: false,
+            brightness: 70,
+            volume: 50,
+            theme: 'light',
+            glassEffect: 50,
+            selectedAI: 'giga',
+            region: 'ru',
+            faceIdEnabled: false,
+            sleepTimer: 0,
+            protectedApps: [],
+            wallpaper: 'https://i.postimg.cc/NjYRkPCs/IMG-0052.jpg',
+            customApps: [],
+            weatherData: {
+                temp: 22,
+                city: 'Москва',
+                condition: 'Солнечно'
+            },
+            // История навигации в настройках
+            settingsHistory: ['main'],
+            currentSettingsPage: 'main'
+        };
+
+        // Элементы для drag and drop
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffset = { x: 0, y: 0 };
+        let placeholder = null;
+        let dragType = null;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            initDragAndDrop();
+            loadState();
+            updateWeather();
+            setupDoubleTapForAI();
+            
+            // Включаем светлую тему по умолчанию
+            if (!state.theme || state.theme === 'light') {
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
+            }
+        });
+
+        // Открытие приложения
+        function openApp(appId) {
+            if (state.editMode) return;
+            
+            if (appId === 'settings') {
+                openSettings();
+                return;
+            }
+            
+            if (appId === 'games') {
+                openFolder('games');
+                return;
+            }
+            
+            if (apps[appId]) {
+                window.open(apps[appId].url, '_blank');
+            }
+        }
+
+        // Открытие папки
+        function openFolder(folderName) {
+            if (state.editMode) return;
+            
+            alert(`Открыта папка "${folderName}"`);
+            // В реальном приложении здесь было бы открытие модального окна с приложениями в папке
+        }
+
+        // Открытие настроек
+        function openSettings() {
+            if (state.editMode) return;
+            
+            // Сброс истории навигации
+            state.settingsHistory = ['main'];
+            state.currentSettingsPage = 'main';
+            
+            document.getElementById('settingsContainer').style.display = 'block';
+            document.getElementById('settingsHistory').style.display = 'none';
+            document.getElementById('settingsTitle').innerHTML = 'Настройки';
+            
+            showSettingsSection('main');
+        }
+
+        // Закрытие настроек
+        function closeSettings() {
+            document.getElementById('settingsContainer').style.display = 'none';
+        }
+
+        // Навигация назад в настройках
+        function goBackInSettings() {
+            if (state.settingsHistory.length > 1) {
+                // Удаляем текущую страницу
+                state.settingsHistory.pop();
+                // Получаем предыдущую страницу
+                const previousPage = state.settingsHistory[state.settingsHistory.length - 1];
+                state.currentSettingsPage = previousPage;
+                
+                // Обновляем заголовок
+                updateSettingsTitle(previousPage);
+                
+                // Показываем историю если мы не на главной
+                if (state.settingsHistory.length > 1) {
+                    document.getElementById('settingsHistory').style.display = 'flex';
+                    const previousTitle = getSettingsTitle(state.settingsHistory[state.settingsHistory.length - 2]);
+                    document.getElementById('historyTitle').textContent = previousTitle;
+                } else {
+                    document.getElementById('settingsHistory').style.display = 'none';
+                }
+                
+                showSettingsSection(previousPage);
+            } else {
+                closeSettings();
+            }
+        }
+
+        // Обновление заголовка настроек
+        function updateSettingsTitle(page) {
+            const titleElement = document.getElementById('settingsTitle');
+            titleElement.innerHTML = getSettingsTitle(page);
+        }
+
+        function getSettingsTitle(page) {
+            const titles = {
+                'main': 'Настройки',
+                'basic': 'Основные',
+                'wallpaper': 'Обои',
+                'intelligence': 'Intelligence',
+                'display': 'Экран и яркость',
+                'sound': 'Звуки',
+                'passcey': 'Passcey',
+                'notifications': 'Уведомления',
+                'sleep': 'Таймер сна',
+                'add-tma': 'Добавить TMA',
+                'airdrop': 'AirDrop',
+                'region': 'Регион',
+                'legal': 'Правовая информация',
+                'storage': 'Хранилище'
+            };
+            return titles[page] || page;
+        }
+
+        // Показать секцию настроек
+        function showSettingsSection(section) {
+            if (section !== state.currentSettingsPage) {
+                state.settingsHistory.push(section);
+                state.currentSettingsPage = section;
+            }
+            
+            const content = document.getElementById('settingsContent');
+            
+            // Показываем/скрываем историю
+            if (state.settingsHistory.length > 1) {
+                document.getElementById('settingsHistory').style.display = 'flex';
+                const previousTitle = getSettingsTitle(state.settingsHistory[state.settingsHistory.length - 2]);
+                document.getElementById('historyTitle').textContent = previousTitle;
+            } else {
+                document.getElementById('settingsHistory').style.display = 'none';
+            }
+            
+            // Обновляем заголовок
+            updateSettingsTitle(section);
+            
+            switch(section) {
+                case 'main':
+                    content.innerHTML = getMainSettingsHTML();
+                    break;
+                case 'basic':
+                    content.innerHTML = getBasicSettingsHTML();
+                    break;
+                case 'wallpaper':
+                    content.innerHTML = getWallpaperSettingsHTML();
+                    break;
+                case 'intelligence':
+                    content.innerHTML = getIntelligenceSettingsHTML();
+                    break;
+                case 'display':
+                    content.innerHTML = getDisplaySettingsHTML();
+                    break;
+                case 'sound':
+                    content.innerHTML = getSoundSettingsHTML();
+                    break;
+                case 'passcey':
+                    content.innerHTML = getPassceySettingsHTML();
+                    break;
+                case 'notifications':
+                    content.innerHTML = getNotificationSettingsHTML();
+                    break;
+                case 'sleep':
+                    content.innerHTML = getSleepSettingsHTML();
+                    break;
+                case 'add-tma':
+                    content.innerHTML = getAddTmaHTML();
+                    break;
+                case 'airdrop':
+                    content.innerHTML = getAirdropSettingsHTML();
+                    break;
+                case 'region':
+                    content.innerHTML = getRegionSettingsHTML();
+                    break;
+                case 'legal':
+                    content.innerHTML = getLegalInfoHTML();
+                    break;
+                case 'storage':
+                    content.innerHTML = getStorageSettingsHTML();
+                    break;
+            }
+        }
+
+        // Основные настройки
+        function getMainSettingsHTML() {
+            return `
+                <div class="settings-section">
+                    <div class="settings-item" onclick="showSettingsSection('basic')">
+                        <div class="item-icon blue">
+                            <i class="fas fa-gear"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Основные</div>
+                            <div class="item-subtitle">Версия, обновления, хранилище</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('display')">
+                        <div class="item-icon blue">
+                            <i class="fas fa-display"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Экран и яркость</div>
+                            <div class="item-subtitle">Яркость, тема, жидкое стекло</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('wallpaper')">
+                        <div class="item-icon purple">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Обои</div>
+                            <div class="item-subtitle">Фоновое изображение</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <div class="settings-item" onclick="showSettingsSection('sound')">
+                        <div class="item-icon red">
+                            <i class="fas fa-volume-high"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Звуки</div>
+                            <div class="item-subtitle">Громкость, рингтоны</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('notifications')">
+                        <div class="item-icon orange">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Уведомления</div>
+                            <div class="item-subtitle">Настройка оповещений</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('sleep')">
+                        <div class="item-icon teal">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Таймер сна</div>
+                            <div class="item-subtitle">Автовыключение экрана</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <div class="settings-item" onclick="showSettingsSection('intelligence')">
+                        <div class="item-icon green">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Intelligence</div>
+                            <div class="item-subtitle">Настройки ИИ</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('passcey')">
+                        <div class="item-icon yellow">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Passcey</div>
+                            <div class="item-subtitle">Защита приложений</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('airdrop')">
+                        <div class="item-icon blue">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">AirDrop</div>
+                            <div class="item-subtitle">Обмен файлами</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <div class="settings-item" onclick="showSettingsSection('add-tma')">
+                        <div class="item-icon pink">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Добавить TMA</div>
+                            <div class="item-subtitle">Telegram Mini Apps</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('region')">
+                        <div class="item-icon gray">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Регион</div>
+                            <div class="item-subtitle">${getRegionName(state.region)}</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showSettingsSection('legal')">
+                        <div class="item-icon gray">
+                            <i class="fas fa-scale-balanced"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">Правовая информация</div>
+                        </div>
+                        <div class="chevron">›</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Основные настройки (версия, обновления, хранилище)
+        function getBasicSettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Основные</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">TelegaOS</div>
+                                    <div class="item-subtitle">Версия 1.0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Обновление ПО</div>
+                                    <div class="item-subtitle">Доступных обновлений нет</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item" onclick="showSettingsSection('storage')">
+                                <div class="item-info">
+                                    <div class="item-title">Хранилище TelegaOS</div>
+                                    <div class="item-subtitle">Всего 10 ГБ • Использовано 6.5 ГБ</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Хранилище
+        function getStorageSettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Хранилище TelegaOS</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Всего памяти</div>
+                                    <div class="item-value">10 ГБ</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="storage-bar">
+                                    <div class="storage-fill"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Использовано</div>
+                                    <div class="item-value">6.5 ГБ</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Свободно</div>
+                                    <div class="item-value">3.5 ГБ</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title" style="color: #ff3b30;">
+                                        ⚠️ Внимание: при очищении Telegram могут быть потеряны данные
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <button class="clear-cache-btn" onclick="clearCache()">
+                                    Очистить кэш Telegram
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Купить безлимит хранилище</div>
+                                    <div class="item-subtitle">Всего 15₽ в месяц</div>
+                                </div>
+                                <button class="purchase-btn" onclick="purchaseStorage()">
+                                    🏆 Купить безлимит
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Обои
+        function getWallpaperSettingsHTML() {
+            const wallpapers = [
+                { id: 'current', url: state.wallpaper, name: 'Текущие' },
+                { id: 'nature', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', name: 'Природа' },
+                { id: 'gradient', url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab', name: 'Градиент' },
+                { id: 'dark', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba', name: 'Темные' }
+            ];
+
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Обои</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Выберите обои</div>
+                                    <div class="item-subtitle">Из галереи TelegaOS</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="wallpaper-grid">
+                            ${wallpapers.map(wp => `
+                                <div class="wallpaper-item ${state.wallpaper === wp.url ? 'active' : ''}" 
+                                     onclick="setWallpaper('${wp.url}')">
+                                    <div style="width: 100%; height: 100%; background-image: url('${wp.url}'); background-size: cover; background-position: center;"></div>
+                                    <div style="position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; color: white;">${wp.name}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="dropzone" onclick="uploadWallpaper()">
+                                <div class="dropzone-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <div>Загрузить с устройства</div>
+                                <div class="item-subtitle">Выберите изображение с вашего устройства</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Intelligence
+        function getIntelligenceSettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Intelligence</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Искусственный интеллект</div>
+                                    <div class="item-subtitle">Выберите помощника ИИ</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Используемый ИИ</div>
+                                    <div class="item-subtitle">Открывается двойным касанием с двух сторон экрана</div>
+                                </div>
+                                <select class="ai-select" onchange="setAI(this.value)">
+                                    <option value="giga" ${state.selectedAI === 'giga' ? 'selected' : ''}>Giga Chat (https://t.me/gigachat_bot)</option>
+                                    <option value="alice" ${state.selectedAI === 'alice' ? 'selected' : ''}>Алиса AI (https://t.me/alice_ya_bot?start)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-item" onclick="testAI()">
+                                <div class="item-info">
+                                    <div class="item-title">Протестировать ИИ</div>
+                                    <div class="item-subtitle">Запустить выбранного помощника</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Экран и яркость
+        function getDisplaySettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Экран и яркость</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Яркость</div>
+                                </div>
+                                <div class="slider-container">
+                                    <div class="slider" onclick="adjustBrightness(event)">
+                                        <div class="slider-fill" style="width: ${state.brightness}%"></div>
+                                        <div class="slider-thumb" style="left: ${state.brightness}%"></div>
+                                    </div>
+                                    <div>${state.brightness}%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Тема</div>
+                                    <div class="item-subtitle">Выберите светлую или темную тему</div>
+                                </div>
+                                <div class="theme-selector">
+                                    <div class="theme-option ${state.theme === 'light' ? 'active' : ''}" onclick="setTheme('light')">
+                                        <i class="fas fa-sun"></i><br>
+                                        Светлая
+                                    </div>
+                                    <div class="theme-option ${state.theme === 'dark' ? 'active' : ''}" onclick="setTheme('dark')">
+                                        <i class="fas fa-moon"></i><br>
+                                        Тёмная
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Сила жидкого стекла</div>
+                                    <div class="item-subtitle">Настройка визуальных эффектов (неактивно)</div>
+                                </div>
+                                <div class="slider-container">
+                                    <div class="slider">
+                                        <div class="slider-fill" style="width: ${state.glassEffect}%"></div>
+                                        <div class="slider-thumb" style="left: ${state.glassEffect}%"></div>
+                                    </div>
+                                    <div>${state.glassEffect}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Звуки
+        function getSoundSettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Звуки</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Громкость</div>
+                                </div>
+                                <div class="slider-container">
+                                    <div class="slider" onclick="adjustVolume(event)">
+                                        <div class="slider-fill" style="width: ${state.volume}%"></div>
+                                        <div class="slider-thumb" style="left: ${state.volume}%"></div>
+                                    </div>
+                                    <div>${state.volume}%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="sound-test">
+                                <button class="sound-test-btn" onclick="playTestSound()">
+                                    <i class="fas fa-play"></i> Проверить звук
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Passcey
+        function getPassceySettingsHTML() {
+            const appsList = [
+                { id: 'photos', name: 'Фото', icon: 'fas fa-images', color: 'teal', protected: state.protectedApps.includes('photos') },
+                { id: 'messages', name: 'Сообщения', icon: 'fas fa-comment', color: 'green', protected: state.protectedApps.includes('messages') },
+                { id: 'appss', name: 'Appss', icon: 'fas fa-shopping-bag', color: 'blue', protected: state.protectedApps.includes('appss') },
+                { id: 'calculator', name: 'Калькулятор', icon: 'fas fa-calculator', color: 'orange', protected: state.protectedApps.includes('calculator') }
+            ];
+
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Passcey</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Защита приложений</div>
+                                    <div class="item-subtitle">Защита паролем, Face ID или отпечатком пальца</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Face ID</div>
+                                    <div class="item-subtitle">Использовать распознавание лица</div>
+                                </div>
+                                <div class="toggle ${state.faceIdEnabled ? 'active' : ''}" onclick="toggleFaceID()">
+                                    <div class="toggle-circle"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item" onclick="setupPasscode()">
+                                <div class="item-info">
+                                    <div class="item-title">Пароль</div>
+                                    <div class="item-subtitle">Установить цифровой пароль</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                            
+                            <div class="settings-item" onclick="setupFingerprint()">
+                                <div class="item-info">
+                                    <div class="item-title">Отпечаток пальца</div>
+                                    <div class="item-subtitle">Добавить биометрическую защиту</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Защищенные приложения</div>
+                                    <div class="item-subtitle">Выберите приложения для защиты</div>
+                                </div>
+                            </div>
+                            
+                            <div class="app-protection-list">
+                                ${appsList.map(app => `
+                                    <div class="protected-app">
+                                        <div class="app-icon-small ${app.color}">
+                                            <i class="${app.icon}"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div>${app.name}</div>
+                                            <div style="font-size: 12px; color: #8e8e93;">${app.protected ? 'Защищено' : 'Не защищено'}</div>
+                                        </div>
+                                        <div class="toggle ${app.protected ? 'active' : ''}" onclick="toggleAppProtection('${app.id}')">
+                                            <div class="toggle-circle"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Уведомления
+        function getNotificationSettingsHTML() {
+            const appsList = [
+                { name: 'Сообщения', enabled: true },
+                { name: 'Почта', enabled: true },
+                { name: 'Telegram', enabled: true },
+                { name: 'Напоминания', enabled: false }
+            ];
+
+            return `
+                <div class="notification-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Уведомления</h2>
+                        
+                        <div class="settings-section">
+                            ${appsList.map(app => `
+                                <div class="notification-app">
+                                    <div class="item-info">
+                                        <div class="item-title">${app.name}</div>
+                                    </div>
+                                    <div class="toggle ${app.enabled ? 'active' : ''}" onclick="toggleNotification('${app.name}')">
+                                        <div class="toggle-circle"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Таймер сна
+        function getSleepSettingsHTML() {
+            const timers = [
+                { value: 0, label: 'Никогда' },
+                { value: 1, label: '1 минута' },
+                { value: 5, label: '5 минут' },
+                { value: 10, label: '10 минут' },
+                { value: 15, label: '15 минут' },
+                { value: 30, label: '30 минут' },
+                { value: 60, label: '1 час' }
+            ];
+            
+            return `
+                <div class="sleep-timer-section">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Таймер сна</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Автовыключение экрана</div>
+                                    <div class="item-subtitle">Экран выключится через: ${state.sleepTimer === 0 ? 'Никогда' : state.sleepTimer + ' минут'}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timer-options">
+                                ${timers.map(timer => `
+                                    <div class="timer-option ${state.sleepTimer === timer.value ? 'active' : ''}" 
+                                         onclick="setSleepTimer(${timer.value})">
+                                        ${timer.label}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Добавление TMA
+        function getAddTmaHTML() {
+            const icons = [
+                'fas fa-robot', 'fas fa-gamepad', 'fas fa-shopping-cart', 'fas fa-music',
+                'fas fa-video', 'fas fa-book', 'fas fa-wallet', 'fas fa-chart-line',
+                'fas fa-camera', 'fas fa-map', 'fas fa-newspaper', 'fas fa-paint-brush'
+            ];
+
+            return `
+                <div class="add-tma-container">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Добавить Telegram Mini App</h2>
+                        
+                        <div class="input-group">
+                            <label>Ссылка на TMA (формат t.me/...)</label>
+                            <input type="text" id="tmaUrl" placeholder="t.me/bot/app" value="t.me/">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Название приложения</label>
+                            <input type="text" id="tmaName" placeholder="Мое приложение">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Иконка приложения</label>
+                            <div class="icon-selection">
+                                ${icons.map(icon => `
+                                    <div class="icon-option blue" onclick="selectIcon(this, '${icon}')">
+                                        <i class="${icon}"></i>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="preview-icon blue" id="previewIcon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        
+                        <button class="add-btn" onclick="addCustomApp()">
+                            Добавить на рабочий стол
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // AirDrop
+        function getAirdropSettingsHTML() {
+            const qrCode = generateQRCode();
+            
+            return `
+                <div class="qrcode-container">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">AirDrop</h2>
+                        
+                        <div class="qrcode">
+                            ${qrCode}
+                        </div>
+                        
+                        <div class="airdrop-info">
+                            Поделитесь QR-кодом для передачи изображений и файлов<br>
+                            Код действителен в течение 5 минут
+                        </div>
+                        
+                        <button class="add-btn" onclick="generateNewQR()" style="margin-top: 30px;">
+                            <i class="fas fa-sync-alt"></i> Сгенерировать новый код
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Регион
+        function getRegionSettingsHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Регион</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item" onclick="setRegion('ru')">
+                                <div class="item-info">
+                                    <div class="item-title">СНГ</div>
+                                    <div class="item-subtitle">Россия, Беларусь, Казахстан и др.</div>
+                                </div>
+                                ${state.region === 'ru' ? '<div style="color: #0a84ff; font-size: 20px;">✓</div>' : ''}
+                            </div>
+                            
+                            <div class="settings-item" onclick="setRegion('us')">
+                                <div class="item-info">
+                                    <div class="item-title">США</div>
+                                    <div class="item-subtitle">Английский язык, доллары</div>
+                                </div>
+                                ${state.region === 'us' ? '<div style="color: #0a84ff; font-size: 20px;">✓</div>' : ''}
+                            </div>
+                            
+                            <div class="settings-item" onclick="setRegion('eu')">
+                                <div class="item-info">
+                                    <div class="item-title">Европа</div>
+                                    <div class="item-subtitle">Евро, метрическая система</div>
+                                </div>
+                                ${state.region === 'eu' ? '<div style="color: #0a84ff; font-size: 20px;">✓</div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Правовая информация
+        function getLegalInfoHTML() {
+            return `
+                <div class="sub-settings">
+                    <div class="settings-group">
+                        <h2 class="settings-group-title">Правовая информация</h2>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item" onclick="showLegalDetails('terms')">
+                                <div class="item-info">
+                                    <div class="item-title">Условия использования</div>
+                                    <div class="item-subtitle">Лицензионное соглашение TelegaOS</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                            
+                            <div class="settings-item" onclick="showLegalDetails('privacy')">
+                                <div class="item-info">
+                                    <div class="item-title">Политика конфиденциальности</div>
+                                    <div class="item-subtitle">Как мы используем ваши данные</div>
+                                </div>
+                                <div class="chevron">›</div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title" style="color: #30d158;">
+                                        <i class="fas fa-check-circle"></i> Соответствие APL
+                                    </div>
+                                    <div class="item-subtitle">TelegaOS полностью соответствует политике Apple License</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Авторские права</div>
+                                    <div class="item-subtitle">© 2024 TelegaOS. Все права защищены.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Версия системы</div>
+                                    <div class="item-subtitle">TelegaOS 1.0 (Build 24A123)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-item">
+                                <div class="item-info">
+                                    <div class="item-title">Лицензия</div>
+                                    <div class="item-subtitle">MIT Open Source License</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Вспомогательные функции
+        function getRegionName(code) {
+            const regions = { ru: 'СНГ', us: 'США', eu: 'Европа' };
+            return regions[code] || 'СНГ';
+        }
+
+        function generateQRCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 12; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return `AirDrop<br>TelegaOS<br>${code}`;
+        }
+
+        function generateNewQR() {
+            const qrcodeElement = document.querySelector('.qrcode');
+            if (qrcodeElement) {
+                qrcodeElement.innerHTML = generateQRCode();
+            }
+        }
+
+        function selectIcon(element, iconClass) {
+            document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('previewIcon').innerHTML = `<i class="${iconClass}"></i>`;
+        }
+
+        // Функции управления
+        function setWallpaper(url) {
+            state.wallpaper = url;
+            document.body.style.backgroundImage = `url('${url}')`;
+            saveState();
+        }
+
+        function setAI(ai) {
+            state.selectedAI = ai;
+            saveState();
+        }
+
+        function setTheme(theme) {
+            state.theme = theme;
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
+            } else if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+            }
+            saveState();
+        }
+
+        function setRegion(region) {
+            state.region = region;
+            saveState();
+            showSettingsSection('region');
+        }
+
+        function adjustBrightness(e) {
+            if (state.editMode) return;
+            
+            const rect = e.target.getBoundingClientRect();
+            const percent = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+            state.brightness = Math.round(percent);
+            
+            const sliderFill = e.target.querySelector('.slider-fill');
+            const sliderThumb = e.target.querySelector('.slider-thumb');
+            const valueDisplay = e.target.closest('.slider-container').querySelector('div:last-child');
+            
+            if (sliderFill) sliderFill.style.width = `${state.brightness}%`;
+            if (sliderThumb) sliderThumb.style.left = `${state.brightness}%`;
+            if (valueDisplay) valueDisplay.textContent = `${state.brightness}%`;
+            
+            saveState();
+        }
+
+        function adjustVolume(e) {
+            if (state.editMode) return;
+            
+            const rect = e.target.getBoundingClientRect();
+            const percent = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+            state.volume = Math.round(percent);
+            
+            const sliderFill = e.target.querySelector('.slider-fill');
+            const sliderThumb = e.target.querySelector('.slider-thumb');
+            const valueDisplay = e.target.closest('.slider-container').querySelector('div:last-child');
+            
+            if (sliderFill) sliderFill.style.width = `${state.volume}%`;
+            if (sliderThumb) sliderThumb.style.left = `${state.volume}%`;
+            if (valueDisplay) valueDisplay.textContent = `${state.volume}%`;
+            
+            saveState();
+        }
+
+        function toggleFaceID() {
+            state.faceIdEnabled = !state.faceIdEnabled;
+            saveState();
+            showSettingsSection('passcey');
+        }
+
+        function setSleepTimer(minutes) {
+            state.sleepTimer = minutes;
+            saveState();
+            showSettingsSection('sleep');
+        }
+
+        function toggleAppProtection(appId) {
+            const index = state.protectedApps.indexOf(appId);
+            if (index > -1) {
+                state.protectedApps.splice(index, 1);
+            } else {
+                state.protectedApps.push(appId);
+            }
+            saveState();
+            showSettingsSection('passcey');
+        }
+
+        function toggleNotification(appName) {
+            // Здесь должна быть логика переключения уведомлений
+            saveState();
+            showSettingsSection('notifications');
+        }
+
+        function testAI() {
+            const url = state.selectedAI === 'giga' 
+                ? 'https://t.me/gigachat_bot'
+                : 'https://t.me/alice_ya_bot?start';
+            window.open(url, '_blank');
+        }
+
+        function setupDoubleTapForAI() {
+            let lastTap = 0;
+            let tapCount = 0;
+            let tapTimeout;
+            
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const screenWidth = window.innerWidth;
+                    
+                    // Проверяем что касания с двух сторон экрана
+                    if ((touch1.clientX < screenWidth * 0.3 && touch2.clientX > screenWidth * 0.7) ||
+                        (touch2.clientX < screenWidth * 0.3 && touch1.clientX > screenWidth * 0.7)) {
+                        
+                        const now = Date.now();
+                        if (now - lastTap < 300) {
+                            tapCount++;
+                            if (tapCount === 2) {
+                                testAI();
+                                tapCount = 0;
+                                clearTimeout(tapTimeout);
+                            }
+                        } else {
+                            tapCount = 1;
+                        }
+                        lastTap = now;
+                        
+                        tapTimeout = setTimeout(() => {
+                            tapCount = 0;
+                        }, 300);
+                    }
+                }
+            });
+        }
+
+        function playTestSound() {
+            // Имитация звука
+            alert('🔊 Тестовый звук воспроизведен');
+        }
+
+        function addCustomApp() {
+            const urlInput = document.getElementById('tmaUrl');
+            const nameInput = document.getElementById('tmaName');
+            
+            if (!urlInput || !nameInput) return;
+            
+            const url = urlInput.value.trim();
+            const name = nameInput.value.trim() || 'TMA App';
+            
+            if (!url || !url.startsWith('t.me/')) {
+                alert('Введите корректную ссылку Telegram в формате t.me/...');
+                return;
+            }
+            
+            const selectedIcon = document.querySelector('.icon-option.active i');
+            const iconClass = selectedIcon ? selectedIcon.className : 'fas fa-robot';
+            
+            const appId = 'custom_' + Date.now();
+            const appElement = document.createElement('div');
+            appElement.className = 'app-icon';
+            appElement.setAttribute('data-id', appId);
+            appElement.onclick = () => window.open(url, '_blank');
+            appElement.innerHTML = `
+                <div class="icon blue">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="app-name">${name}</div>
+                <div class="delete-badge" onclick="removeApp('${appId}', event)">×</div>
+            `;
+            
+            document.getElementById('appGrid').appendChild(appElement);
+            
+            // Сохраняем в состоянии
+            state.customApps.push({
+                id: appId,
+                url: url,
+                name: name,
+                icon: iconClass
+            });
+            saveState();
+            
+            // Сбрасываем форму
+            urlInput.value = 't.me/';
+            nameInput.value = '';
+            document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.icon-option')[0].classList.add('active');
+            document.getElementById('previewIcon').innerHTML = '<i class="fas fa-robot"></i>';
+            
+            alert(`Приложение "${name}" добавлено на рабочий стол!`);
+        }
+
+        function purchaseStorage() {
+            alert('🛒 Покупка безлимитного хранилища за 15₽ в месяц.\nЭта функция доступна в полной версии TelegaOS.');
+        }
+
+        function clearCache() {
+            if (confirm('⚠️ Вы уверены, что хотите очистить кэш Telegram?\nПри этом могут быть потеряны некоторые данные.')) {
+                alert('✅ Кэш успешно очищен!');
+            }
+        }
+
+        function setupPasscode() {
+            const passcode = prompt('Введите 4-значный пароль:');
+            if (passcode && passcode.length === 4 && !isNaN(passcode)) {
+                alert('✅ Пароль успешно установлен!');
+            } else {
+                alert('❌ Введите корректный 4-значный пароль.');
+            }
+        }
+
+        function setupFingerprint() {
+            alert('Настройка отпечатка пальца:\n\n1. Приложите палец к экрану\n2. Удерживайте, пока не почувствуете вибрацию\n3. Повторите для лучшего распознавания');
+        }
+
+        function uploadWallpaper() {
+            alert('Выберите изображение с вашего устройства');
+            // В реальном приложении здесь была бы загрузка файла
+        }
+
+        function showLegalDetails(type) {
+            const content = document.getElementById('settingsContent');
+            if (type === 'terms') {
+                content.innerHTML = `
+                    <div class="legal-text">
+                        <h3>Условия использования TelegaOS</h3>
+                        <p>1. TelegaOS является имитацией интерфейса iOS для демонстрационных целей.</p>
+                        <p>2. Все приложения открываются через Telegram Web/Apps.</p>
+                        <p>3. Мы не храним ваши персональные данные.</p>
+                        <p>4. Проект является открытым и распространяется под лицензией MIT.</p>
+                        <button class="back-btn" onclick="showSettingsSection('legal')" style="margin-top: 20px;">
+                            <i class="fas fa-chevron-left"></i> Назад к правовой информации
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'privacy') {
+                content.innerHTML = `
+                    <div class="legal-text">
+                        <h3>Политика конфиденциальности</h3>
+                        <p>1. TelegaOS не собирает и не передает персональные данные.</p>
+                        <p>2. Все настройки сохраняются локально в вашем браузере.</p>
+                        <p>3. Ссылки на приложения открываются в новых вкладках.</p>
+                        <p>4. Мы не используем cookies для отслеживания.</p>
+                        <button class="back-btn" onclick="showSettingsSection('legal')" style="margin-top: 20px;">
+                            <i class="fas fa-chevron-left"></i> Назад к правовой информации
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Drag and Drop функциональность
+        function initDragAndDrop() {
+            function startDrag(e, element, type) {
+                if (!state.editMode) return;
+                
+                isDragging = true;
+                dragElement = element;
+                dragType = type;
+                dragElement.classList.add('dragging');
+                
+                const rect = dragElement.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                dragOffset.x = clientX - rect.left;
+                dragOffset.y = clientY - rect.top;
+                
+                // Создаем плейсхолдер
+                placeholder = document.createElement('div');
+                placeholder.style.width = rect.width + 'px';
+                placeholder.style.height = rect.height + 'px';
+                placeholder.style.gridColumn = dragElement.style.gridColumn || 'auto';
+                placeholder.style.gridRow = dragElement.style.gridRow || 'auto';
+                placeholder.style.visibility = 'hidden';
+                dragElement.parentNode.insertBefore(placeholder, dragElement);
+                
+                dragElement.style.position = 'fixed';
+                dragElement.style.zIndex = '1000';
+                dragElement.style.pointerEvents = 'none';
+                dragElement.style.left = clientX - dragOffset.x + 'px';
+                dragElement.style.top = clientY - dragOffset.y + 'px';
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+                
+                if (e.type === 'touchstart') e.preventDefault();
+            }
+
+            function drag(e) {
+                if (!isDragging || !dragElement) return;
+                
+                e.preventDefault();
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                if (clientX && clientY) {
+                    dragElement.style.left = (clientX - dragOffset.x) + 'px';
+                    dragElement.style.top = (clientY - dragOffset.y) + 'px';
+                }
+                
+                // Поиск ближайшего элемента для замены
+                const elements = dragType === 'app' 
+                    ? document.querySelectorAll('.app-icon:not(.dragging)')
+                    : document.querySelectorAll('.widget:not(.dragging)');
+                
+                let closestElement = null;
+                let closestDistance = Infinity;
+                
+                elements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const distance = Math.sqrt(
+                        Math.pow(clientX - centerX, 2) + 
+                        Math.pow(clientY - centerY, 2)
+                    );
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestElement = el;
+                    }
+                });
+                
+                if (closestElement && closestDistance < 100) {
+                    // Меняем местами элементы в сетке
+                    const tempCol = closestElement.style.gridColumn;
+                    const tempRow = closestElement.style.gridRow;
+                    
+                    closestElement.style.gridColumn = placeholder.style.gridColumn;
+                    closestElement.style.gridRow = placeholder.style.gridRow;
+                    
+                    placeholder.style.gridColumn = tempCol;
+                    placeholder.style.gridRow = tempRow;
+                }
+            }
+
+            function stopDrag() {
+                if (!isDragging || !dragElement) return;
+                
+                isDragging = false;
+                
+                // Возвращаем элемент на место плейсхолдера
+                dragElement.style.gridColumn = placeholder.style.gridColumn;
+                dragElement.style.gridRow = placeholder.style.gridRow;
+                
+                // Убираем временные стили
+                dragElement.classList.remove('dragging');
+                dragElement.style.position = '';
+                dragElement.style.left = '';
+                dragElement.style.top = '';
+                dragElement.style.zIndex = '';
+                dragElement.style.pointerEvents = '';
+                
+                // Удаляем плейсхолдер
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.removeChild(placeholder);
+                }
+                
+                // Очищаем переменные
+                dragElement = null;
+                placeholder = null;
+                dragType = null;
+                
+                // Удаляем обработчики
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+                
+                saveState();
+            }
+
+            // Добавляем обработчики для приложений
+            document.querySelectorAll('.app-icon').forEach(icon => {
+                icon.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) startDrag(e, icon, 'app');
+                });
+                
+                icon.addEventListener('touchstart', (e) => {
+                    startDrag(e, icon, 'app');
+                });
+            });
+
+            // Добавляем обработчики для виджетов
+            document.querySelectorAll('.widget').forEach(widget => {
+                widget.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) startDrag(e, widget, 'widget');
+                });
+                
+                widget.addEventListener('touchstart', (e) => {
+                    startDrag(e, widget, 'widget');
+                });
+            });
+        }
+
+        // Режим редактирования
+        function toggleEditMode() {
+            state.editMode = !state.editMode;
+            document.body.classList.toggle('edit-mode', state.editMode);
+            
+            const editBtn = document.querySelector('.edit-btn');
+            const doneBtn = document.querySelector('.done-btn');
+            
+            if (state.editMode) {
+                editBtn.style.display = 'none';
+                doneBtn.style.display = 'block';
+                
+                // Показываем бейджи удаления
+                document.querySelectorAll('.delete-badge').forEach(badge => {
+                    badge.style.display = 'flex';
+                });
+                
+                // Показываем кнопки изменения размера виджетов
+                document.querySelectorAll('.widget-size-control').forEach(control => {
+                    control.style.opacity = '1';
+                });
+            } else {
+                editBtn.style.display = 'block';
+                doneBtn.style.display = 'none';
+                
+                // Скрываем бейджи удаления
+                document.querySelectorAll('.delete-badge').forEach(badge => {
+                    badge.style.display = 'none';
+                });
+                
+                // Скрываем кнопки изменения размера виджетов
+                document.querySelectorAll('.widget-size-control').forEach(control => {
+                    control.style.opacity = '0';
+                });
+                
+                saveState();
+            }
+        }
+
+        // Изменение размера виджета
+        function resizeWidget(widgetId, size) {
+            if (!state.editMode) return;
+            
+            const widget = document.querySelector(`[data-id="${widgetId}"]`);
+            if (widget) {
+                widget.classList.remove('small', 'medium', 'large');
+                widget.classList.add(size);
+                widget.setAttribute('data-size', size);
+                
+                // Обновляем размер в сетке
+                if (size === 'small') {
+                    widget.style.gridRow = 'span 1';
+                } else if (size === 'medium') {
+                    widget.style.gridRow = 'span 2';
+                } else if (size === 'large') {
+                    widget.style.gridRow = 'span 2';
+                    widget.style.gridColumn = 'span 4';
+                }
+                
+                saveState();
+            }
+        }
+
+        // Удаление виджета
+        function removeWidget(widgetId) {
+            if (!state.editMode) return;
+            
+            const widget = document.querySelector(`[data-id="${widgetId}"]`);
+            if (widget && confirm('Удалить этот виджет?')) {
+                widget.remove();
+                saveState();
+            }
+        }
+
+        // Удаление приложения
+        function removeApp(appId, e) {
+            if (!state.editMode) return;
+            
+            if (e) e.stopPropagation();
+            
+            if (appId.startsWith('custom_')) {
+                state.customApps = state.customApps.filter(app => app.id !== appId);
+            }
+            
+            const app = document.querySelector(`[data-id="${appId}"]`);
+            if (app && confirm('Удалить это приложение?')) {
+                app.remove();
+                saveState();
+            }
+        }
+
+        // Обновление погоды
+        function updateWeather() {
+            const temps = [18, 22, 25, 20, 23, 19];
+            const randomTemp = temps[Math.floor(Math.random() * temps.length)];
+            state.weatherData.temp = randomTemp;
+            
+            const tempElement = document.getElementById('currentTemp');
+            if (tempElement) {
+                tempElement.textContent = `+${randomTemp}°`;
+            }
+        }
+
+        // Сохранение и загрузка состояния
+        function saveState() {
+            try {
+                // Сохраняем позиции элементов
+                const gridState = {
+                    apps: [],
+                    widgets: []
+                };
+                
+                document.querySelectorAll('.app-icon').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    gridState.apps.push({
+                        id: el.dataset.id,
+                        gridColumn: style.gridColumn,
+                        gridRow: style.gridRow
+                    });
+                });
+                
+                document.querySelectorAll('.widget').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    gridState.widgets.push({
+                        id: el.dataset.id,
+                        gridColumn: style.gridColumn,
+                        gridRow: style.gridRow,
+                        size: el.dataset.size
+                    });
+                });
+                
+                const fullState = {
+                    ...state,
+                    gridState,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem('telegaos_state', JSON.stringify(fullState));
+            } catch (e) {
+                console.error('Ошибка сохранения:', e);
+            }
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('telegaos_state');
+                if (saved) {
+                    const loadedState = JSON.parse(saved);
+                    
+                    // Восстанавливаем основные настройки
+                    state = {
+                        ...state,
+                        ...loadedState,
+                        customApps: loadedState.customApps || [],
+                        protectedApps: loadedState.protectedApps || []
+                    };
+                    
+                    // Применяем настройки
+                    if (state.wallpaper) {
+                        document.body.style.backgroundImage = `url('${state.wallpaper}')`;
+                    }
+                    
+                    if (state.theme === 'dark') {
+                        document.body.classList.add('dark-mode');
+                        document.body.classList.remove('light-mode');
+                    } else {
+                        document.body.classList.add('light-mode');
+                        document.body.classList.remove('dark-mode');
+                    }
+                    
+                    // Восстанавливаем пользовательские приложения
+                    state.customApps.forEach(app => {
+                        const appElement = document.createElement('div');
+                        appElement.className = 'app-icon';
+                        appElement.setAttribute('data-id', app.id);
+                        appElement.onclick = () => window.open(app.url, '_blank');
+                        appElement.innerHTML = `
+                            <div class="icon blue">
+                                <i class="${app.icon || 'fas fa-robot'}"></i>
+                            </div>
+                            <div class="app-name">${app.name}</div>
+                            <div class="delete-badge" onclick="removeApp('${app.id}', event)">×</div>
+                        `;
+                        document.getElementById('appGrid').appendChild(appElement);
+                    });
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки состояния:', e);
+            }
+        }
+    </script>
+</body>
+</html>
