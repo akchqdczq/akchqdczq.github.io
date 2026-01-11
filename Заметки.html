@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заметки</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Точные iOS стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background-color: #F2F2F7;
+            color: #000000;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* iOS Navigation Bar */
+        .nav-bar {
+            height: 44px;
+            background: rgba(242, 242, 247, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-button {
+            font-size: 17px;
+            color: #007AFF;
+            background: none;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 8px 16px;
+            background: #F2F2F7;
+            position: fixed;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 90;
+        }
+
+        .search-bar {
+            width: 100%;
+            height: 36px;
+            background: rgba(118, 118, 128, 0.12);
+            border-radius: 10px;
+            border: none;
+            padding: 0 36px;
+            font-size: 17px;
+            color: #000;
+        }
+
+        .search-bar::placeholder {
+            color: #8E8E93;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 28px;
+            top: 18px;
+            color: #8E8E93;
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 88px;
+            height: calc(100vh - 88px);
+            overflow-y: auto;
+        }
+
+        /* Folders Section */
+        .section-header {
+            padding: 16px 16px 8px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .see-all {
+            font-size: 17px;
+            color: #007AFF;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .folders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            padding: 8px 16px 20px;
+        }
+
+        /* iOS Style Card */
+        .ios-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 16px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .ios-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .folder-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .folder-icon.yellow {
+            background: linear-gradient(135deg, #FFD60A, #FF9F0A);
+        }
+
+        .folder-icon.red {
+            background: linear-gradient(135deg, #FF375F, #FF6B9D);
+        }
+
+        .folder-icon.blue {
+            background: linear-gradient(135deg, #32D74B, #64D2FF);
+        }
+
+        .folder-icon.purple {
+            background: linear-gradient(135deg, #BF5AF2, #9D4BFF);
+        }
+
+        .folder-icon.green {
+            background: linear-gradient(135deg, #34C759, #30D158);
+        }
+
+        .folder-icon.orange {
+            background: linear-gradient(135deg, #FF9500, #FF9F0A);
+        }
+
+        .folder-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .folder-count {
+            font-size: 15px;
+            color: #8E8E93;
+        }
+
+        /* Notes List */
+        .notes-list {
+            padding: 0 16px;
+        }
+
+        .note-item {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .note-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .note-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #C7C7CC;
+            margin-right: 12px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .note-checkbox.checked {
+            background: #007AFF;
+            border-color: #007AFF;
+            position: relative;
+        }
+
+        .note-checkbox.checked::after {
+            content: "✓";
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .note-content {
+            flex: 1;
+        }
+
+        .note-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .note-preview {
+            font-size: 15px;
+            color: #8E8E93;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-date {
+            font-size: 15px;
+            color: #8E8E93;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .note-folder {
+            font-size: 13px;
+            color: #007AFF;
+            background: rgba(0, 122, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            background: #007AFF;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 28px rgba(0, 122, 255, 0.4);
+        }
+
+        /* Edit Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #F2F2F7;
+            width: 100%;
+            border-radius: 12px 12px 0 0;
+            padding: 16px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .close-button {
+            font-size: 17px;
+            color: #007AFF;
+            background: none;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: rgba(118, 118, 128, 0.12);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 17px;
+            color: #000;
+            margin-bottom: 12px;
+        }
+
+        .modal-input::placeholder {
+            color: #8E8E93;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(118, 118, 128, 0.12);
+            border: none;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 17px;
+            color: #000;
+            resize: none;
+            font-family: inherit;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-button {
+            flex: 1;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal-button:hover {
+            opacity: 0.9;
+        }
+
+        .modal-button.cancel {
+            background: rgba(118, 118, 128, 0.12);
+            color: #007AFF;
+        }
+
+        .modal-button.save {
+            background: #007AFF;
+            color: white;
+        }
+
+        .ai-planning-section {
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-button.ai-planning {
+            width: 100%;
+            height: 44px;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-button.ai-planning::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-button.ai-planning:hover::after {
+            left: 100%;
+        }
+
+        /* Folder Selection */
+        .folder-selection {
+            margin-bottom: 12px;
+        }
+
+        .folder-label {
+            font-size: 15px;
+            color: #8E8E93;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .folder-select {
+            width: 100%;
+            height: 44px;
+            background: rgba(118, 118, 128, 0.12);
+            border: none;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 17px;
+            color: #000;
+            cursor: pointer;
+        }
+
+        /* AI Intro Modal */
+        .ai-intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+        }
+
+        .ai-intro-overlay.active {
+            display: flex;
+        }
+
+        .ai-intro-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 24px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .ai-intro-overlay.active .ai-intro-content {
+            transform: scale(1);
+        }
+
+        .ai-intro-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ai-intro-text {
+            font-size: 16px;
+            color: #000;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .ai-intro-steps {
+            background: rgba(0, 122, 255, 0.1);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .ai-intro-step {
+            font-size: 15px;
+            color: #000;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .ai-intro-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-intro-step-number {
+            background: #007AFF;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .ai-intro-tip {
+            font-size: 14px;
+            color: #8E8E93;
+            font-style: italic;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(118, 118, 128, 0.08);
+            border-radius: 10px;
+        }
+
+        .ai-intro-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ai-intro-button {
+            flex: 1;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .ai-intro-button.cancel {
+            background: rgba(118, 118, 128, 0.12);
+            color: #007AFF;
+        }
+
+        .ai-intro-button.start {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+        }
+
+        /* AI Planning Modal */
+        .ai-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .ai-modal-overlay.active {
+            display: flex;
+        }
+
+        .ai-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 24px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .ai-modal-overlay.active .ai-modal-content {
+            transform: scale(1);
+        }
+
+        .ai-modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ai-modal-textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(118, 118, 128, 0.12);
+            border: none;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 17px;
+            color: #000;
+            resize: none;
+            font-family: inherit;
+            margin-bottom: 20px;
+        }
+
+        .ai-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ai-modal-button {
+            flex: 1;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .ai-modal-button.cancel {
+            background: rgba(118, 118, 128, 0.12);
+            color: #007AFF;
+        }
+
+        .ai-modal-button.generate {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 16px;
+            color: #8E8E93;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: #C7C7CC;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #8E8E93;
+            margin-bottom: 8px;
+        }
+
+        /* Selection Mode */
+        .selection-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: rgba(242, 242, 247, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .selection-mode.active {
+            display: flex;
+        }
+
+        .selection-count {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .selection-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .selection-action {
+            font-size: 17px;
+            color: #007AFF;
+            background: none;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-item {
+            padding: 12px 16px;
+            font-size: 17px;
+            color: #000;
+            cursor: pointer;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .context-item:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        .context-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-icon {
+            width: 20px;
+            text-align: center;
+            color: #8E8E93;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .welcome-message.active {
+            display: flex;
+        }
+
+        .welcome-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 32px 24px;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .welcome-icon {
+            font-size: 48px;
+            color: #007AFF;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 16px;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #000;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .welcome-text p {
+            margin-bottom: 12px;
+        }
+
+        .welcome-text ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .welcome-text li {
+            margin-bottom: 6px;
+        }
+
+        .welcome-button {
+            width: 100%;
+            height: 44px;
+            background: #007AFF;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Glass Effect Buttons */
+        .glass-button {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+
+        .main-content {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Message -->
+    <div class="welcome-message" id="welcomeMessage">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <div class="welcome-title">Добро пожаловать в Заметки!</div>
+            <div class="welcome-text">
+                <p>Это приложение позволяет создавать и организовывать заметки в стиле iOS.</p>
+                <p><strong>Важная информация:</strong></p>
+                <ul>
+                    <li>Все заметки сохраняются локально в вашем браузере</li>
+                    <li>При очистке кеша или данных браузера заметки могут быть потеряны</li>
+                    <li>Для полной функциональности рекомендуется использовать приложение в Telegram</li>
+                </ul>
+                <p>Продолжая использование приложения, вы соглашаетесь с тем, что понимаете особенности локального хранения данных.</p>
+            </div>
+            <button class="welcome-button" id="welcomeButton">Продолжить</button>
+        </div>
+    </div>
+
+    <!-- AI Intro Modal -->
+    <div class="ai-intro-overlay" id="aiIntroModal">
+        <div class="ai-intro-content">
+            <div class="ai-intro-title">ИИ-планирование</div>
+            <div class="ai-intro-text">
+                Функция ИИ-планирование использует Алису AI для помощи в создании планов и обучении.
+            </div>
+            <div class="ai-intro-steps">
+                <div class="ai-intro-step">
+                    <div class="ai-intro-step-number">1</div>
+                    <div>Введите ваш запрос в поле ниже</div>
+                </div>
+                <div class="ai-intro-step">
+                    <div class="ai-intro-step-number">2</div>
+                    <div>Будет открыта Алиса AI с вашим запросом</div>
+                </div>
+                <div class="ai-intro-step">
+                    <div class="ai-intro-step-number">3</div>
+                    <div>Скопируйте план от Алисы и закройте вкладку</div>
+                </div>
+                <div class="ai-intro-step">
+                    <div class="ai-intro-step-number">4</div>
+                    <div>Вернитесь и вставьте результат в заметку</div>
+                </div>
+            </div>
+            <div class="ai-intro-tip">
+                Совет: Для удобства включите в Telegram открытие ссылок во встроенном браузере.
+            </div>
+            <div class="ai-intro-actions">
+                <button class="ai-intro-button cancel" id="aiIntroCancel">Отмена</button>
+                <button class="ai-intro-button start" id="aiIntroStart">Начать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selection Mode -->
+    <div class="selection-mode" id="selectionMode">
+        <div class="selection-count" id="selectedCount">Выбрано: 0</div>
+        <div class="selection-actions">
+            <button class="selection-action" id="selectAllBtn">Выбрать все</button>
+            <button class="selection-action" id="cancelSelectBtn">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-title">Заметки</div>
+        <div class="nav-buttons">
+            <button class="nav-button glass-button" id="editButton">Править</button>
+            <button class="nav-button" id="newNoteButton">Новая заметка</button>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <input type="text" class="search-bar" id="searchBar" placeholder="Поиск">
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Folders Section -->
+        <div class="section-header">
+            <div>Папки</div>
+            <div class="see-all" id="seeAllFolders">Все</div>
+        </div>
+        <div class="folders-grid" id="foldersGrid">
+            <!-- Folders will be loaded here -->
+        </div>
+
+        <!-- Notes Section -->
+        <div class="section-header">
+            <div>Заметки</div>
+        </div>
+        <div class="notes-list" id="notesList">
+            <!-- Notes will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <div class="empty-title">Нет заметок</div>
+            <div>Создайте свою первую заметку</div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="fabButton">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Новая заметка</div>
+                <button class="close-button" id="closeModal">Готово</button>
+            </div>
+            <input type="text" class="modal-input" id="noteTitle" placeholder="Заголовок">
+            <div class="folder-selection">
+                <label class="folder-label">Папка:</label>
+                <select class="folder-select" id="noteFolder">
+                    <!-- Folders will be loaded here -->
+                </select>
+            </div>
+            <textarea class="modal-textarea" id="noteContent" placeholder="Начните вводить текст..."></textarea>
+            <div class="ai-planning-section">
+                <button class="modal-button ai-planning" id="aiPlanningButton">
+                    ИИ-планирование
+                </button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button cancel glass-button" id="cancelModal">Отмена</button>
+                <button class="modal-button save" id="saveNote">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Planning Modal -->
+    <div class="ai-modal-overlay" id="aiModal">
+        <div class="ai-modal-content">
+            <div class="ai-modal-title">ИИ-планирование</div>
+            <textarea class="ai-modal-textarea" id="aiQuery" placeholder="Для какого планирования вам нужны идеи? Например: планирование отпуска, организация рабочего дня, подготовка к мероприятию..."></textarea>
+            <div class="ai-modal-actions">
+                <button class="ai-modal-button cancel" id="aiCancel">Отмена</button>
+                <button class="ai-modal-button generate" id="aiGenerate">Генерация</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-item" id="ctxEdit">
+            <div class="context-icon"><i class="fas fa-pencil-alt"></i></div>
+            <div>Редактировать</div>
+        </div>
+        <div class="context-item" id="ctxShare">
+            <div class="context-icon"><i class="fas fa-share"></i></div>
+            <div>Поделиться</div>
+        </div>
+        <div class="context-item" id="ctxDuplicate">
+            <div class="context-icon"><i class="fas fa-copy"></i></div>
+            <div>Дублировать</div>
+        </div>
+        <div class="context-item" id="ctxDelete">
+            <div class="context-icon"><i class="fas fa-trash"></i></div>
+            <div style="color: #FF3B30;">Удалить</div>
+        </div>
+    </div>
+
+    <script>
+        // Данные папок
+        const defaultFolders = [
+            { id: 'all', name: 'Все заметки', icon: 'fas fa-inbox', color: 'blue', count: 0 },
+            { id: 'quick', name: 'Быстрые заметки', icon: 'fas fa-bolt', color: 'yellow', count: 0 },
+            { id: 'personal', name: 'Личное', icon: 'fas fa-home', color: 'red', count: 0 },
+            { id: 'work', name: 'Работа', icon: 'fas fa-briefcase', color: 'blue', count: 0 },
+            { id: 'shopping', name: 'Покупки', icon: 'fas fa-shopping-cart', color: 'purple', count: 0 },
+            { id: 'ideas', name: 'Идеи', icon: 'fas fa-lightbulb', color: 'orange', count: 0 },
+            { id: 'travel', name: 'Путешествия', icon: 'fas fa-plane', color: 'green', count: 0 }
+        ];
+
+        // Данные заметок
+        let notes = JSON.parse(localStorage.getItem('ios-notes')) || [];
+        let folders = JSON.parse(localStorage.getItem('ios-folders')) || defaultFolders;
+        let selectedNotes = new Set();
+        let isEditMode = false;
+        let editingNoteId = null;
+        let contextMenuNoteId = null;
+        let currentFolder = 'all';
+        let hasSeenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
+        let hasSeenAiIntro = localStorage.getItem('hasSeenAiIntro') === 'true';
+        let currentAiQuery = '';
+
+        // DOM Elements
+        const notesList = document.getElementById('notesList');
+        const emptyState = document.getElementById('emptyState');
+        const fabButton = document.getElementById('fabButton');
+        const editButton = document.getElementById('editButton');
+        const newNoteButton = document.getElementById('newNoteButton');
+        const editModal = document.getElementById('editModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelModal = document.getElementById('cancelModal');
+        const saveNoteBtn = document.getElementById('saveNote');
+        const noteTitle = document.getElementById('noteTitle');
+        const noteContent = document.getElementById('noteContent');
+        const noteFolder = document.getElementById('noteFolder');
+        const searchBar = document.getElementById('searchBar');
+        const selectionMode = document.getElementById('selectionMode');
+        const selectedCount = document.getElementById('selectedCount');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+        const contextMenu = document.getElementById('contextMenu');
+        const foldersGrid = document.getElementById('foldersGrid');
+        const seeAllFolders = document.getElementById('seeAllFolders');
+        const aiModal = document.getElementById('aiModal');
+        const aiPlanningButton = document.getElementById('aiPlanningButton');
+        const aiQuery = document.getElementById('aiQuery');
+        const aiCancel = document.getElementById('aiCancel');
+        const aiGenerate = document.getElementById('aiGenerate');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const welcomeButton = document.getElementById('welcomeButton');
+        const aiIntroModal = document.getElementById('aiIntroModal');
+        const aiIntroCancel = document.getElementById('aiIntroCancel');
+        const aiIntroStart = document.getElementById('aiIntroStart');
+
+        // Инициализация
+        if (!hasSeenWelcome) {
+            welcomeMessage.classList.add('active');
+        }
+        initializeApp();
+
+        // Event Listeners
+        fabButton.addEventListener('click', () => openEditModal());
+        newNoteButton.addEventListener('click', () => openEditModal());
+        editButton.addEventListener('click', toggleEditMode);
+
+        closeModal.addEventListener('click', () => {
+            editModal.classList.remove('active');
+            saveCurrentNote();
+        });
+
+        cancelModal.addEventListener('click', () => {
+            editModal.classList.remove('active');
+            resetEditForm();
+        });
+
+        saveNoteBtn.addEventListener('click', () => {
+            editModal.classList.remove('active');
+            saveCurrentNote();
+        });
+
+        searchBar.addEventListener('input', (e) => {
+            renderNotes(e.target.value, currentFolder);
+        });
+
+        selectAllBtn.addEventListener('click', selectAllNotes);
+        cancelSelectBtn.addEventListener('click', cancelSelection);
+
+        aiPlanningButton.addEventListener('click', () => {
+            if (!hasSeenAiIntro) {
+                aiIntroModal.classList.add('active');
+            } else {
+                openAiPlanningModal();
+            }
+        });
+
+        aiIntroCancel.addEventListener('click', () => {
+            aiIntroModal.classList.remove('active');
+        });
+
+        aiIntroStart.addEventListener('click', () => {
+            localStorage.setItem('hasSeenAiIntro', 'true');
+            hasSeenAiIntro = true;
+            aiIntroModal.classList.remove('active');
+            openAiPlanningModal();
+        });
+
+        aiCancel.addEventListener('click', () => {
+            aiModal.classList.remove('active');
+            editModal.classList.add('active');
+        });
+
+        aiGenerate.addEventListener('click', () => {
+            const query = aiQuery.value.trim();
+            if (query) {
+                currentAiQuery = query;
+                // Сохраняем запрос в заголовок заметки
+                noteTitle.value = `ИИ-план: ${query}`;
+                
+                const searchQuery = encodeURIComponent(`идеи планирования для ${query}`);
+                window.open(`https://yandex.ru/search/?text=${searchQuery}&clid=9582`, '_blank');
+                
+                // Показываем инструкцию
+                noteContent.value = `Запрос для ИИ: ${query}\n\n---\nСкопируйте результат от Алисы AI и вставьте сюда\n---\n`;
+                noteContent.focus();
+                noteContent.setSelectionRange(noteContent.value.length, noteContent.value.length);
+                
+                aiModal.classList.remove('active');
+                editModal.classList.add('active');
+            } else {
+                alert('Пожалуйста, введите запрос для ИИ-планирования');
+            }
+        });
+
+        seeAllFolders.addEventListener('click', () => {
+            currentFolder = 'all';
+            renderNotes('', currentFolder);
+            updateFolderSelection();
+        });
+
+        welcomeButton.addEventListener('click', () => {
+            localStorage.setItem('hasSeenWelcome', 'true');
+            welcomeMessage.classList.remove('active');
+        });
+
+        // Context Menu Events
+        document.getElementById('ctxEdit').addEventListener('click', () => {
+            if (contextMenuNoteId) {
+                openEditModal(contextMenuNoteId);
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        document.getElementById('ctxShare').addEventListener('click', () => {
+            if (contextMenuNoteId) {
+                const note = notes.find(n => n.id === contextMenuNoteId);
+                const text = `${note.title}\n\n${note.content}\n\n---\nЗаметка из приложения iOS Notes`;
+                if (navigator.share) {
+                    navigator.share({
+                        title: note.title,
+                        text: text
+                    });
+                } else {
+                    navigator.clipboard.writeText(text);
+                    alert('Заметка скопирована в буфер обмена');
+                }
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        document.getElementById('ctxDuplicate').addEventListener('click', () => {
+            if (contextMenuNoteId) {
+                duplicateNote(contextMenuNoteId);
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        document.getElementById('ctxDelete').addEventListener('click', () => {
+            if (contextMenuNoteId) {
+                deleteNote(contextMenuNoteId);
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        // Close context menu on click outside
+        document.addEventListener('click', (e) => {
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (editModal.classList.contains('active')) {
+                    editModal.classList.remove('active');
+                    resetEditForm();
+                }
+                if (aiModal.classList.contains('active')) {
+                    aiModal.classList.remove('active');
+                    editModal.classList.add('active');
+                }
+                if (aiIntroModal.classList.contains('active')) {
+                    aiIntroModal.classList.remove('active');
+                }
+                if (isEditMode) {
+                    cancelSelection();
+                }
+            }
+        });
+
+        // Functions
+        function initializeApp() {
+            renderFolders();
+            renderNotes('', currentFolder);
+            updateEmptyState();
+            updateFolderCounts();
+            loadFoldersToSelect();
+        }
+
+        function openAiPlanningModal() {
+            editModal.classList.remove('active');
+            aiModal.classList.add('active');
+            aiQuery.focus();
+        }
+
+        function renderFolders() {
+            foldersGrid.innerHTML = '';
+            
+            folders.forEach(folder => {
+                if (folder.id === 'all') return; // Не показываем папку "Все заметки" в сетке
+                
+                const folderElement = document.createElement('div');
+                folderElement.className = 'ios-card folder-card';
+                folderElement.dataset.id = folder.id;
+                
+                folderElement.innerHTML = `
+                    <div class="folder-icon ${folder.color}">
+                        <i class="${folder.icon}"></i>
+                    </div>
+                    <div class="folder-name">${folder.name}</div>
+                    <div class="folder-count">${folder.count} заметок</div>
+                `;
+
+                folderElement.addEventListener('click', () => {
+                    currentFolder = folder.id;
+                    renderNotes('', currentFolder);
+                    updateFolderSelection();
+                });
+
+                foldersGrid.appendChild(folderElement);
+            });
+        }
+
+        function loadFoldersToSelect() {
+            noteFolder.innerHTML = '';
+            
+            folders.forEach(folder => {
+                if (folder.id === 'all') return; // Не показываем папку "Все заметки" в выборе
+                
+                const option = document.createElement('option');
+                option.value = folder.id;
+                option.textContent = folder.name;
+                noteFolder.appendChild(option);
+            });
+        }
+
+        function renderNotes(searchTerm = '', folderId = 'all') {
+            notesList.innerHTML = '';
+            
+            let filteredNotes = notes;
+            
+            // Фильтр по папке
+            if (folderId !== 'all') {
+                filteredNotes = notes.filter(note => note.folder === folderId);
+            }
+            
+            // Фильтр по поиску
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filteredNotes = filteredNotes.filter(note => 
+                    note.title.toLowerCase().includes(term) || 
+                    note.content.toLowerCase().includes(term)
+                );
+            }
+
+            // Сортировка по дате (новые сначала)
+            filteredNotes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            if (filteredNotes.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            filteredNotes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note-item';
+                noteElement.dataset.id = note.id;
+                
+                const checkboxClass = note.checked ? 'note-checkbox checked' : 'note-checkbox';
+                const folder = folders.find(f => f.id === note.folder);
+                const folderName = folder ? folder.name : 'Без папки';
+                
+                noteElement.innerHTML = `
+                    <div class="${checkboxClass}" data-id="${note.id}"></div>
+                    <div class="note-content">
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-preview">${note.content.substring(0, 100)}${note.content.length > 100 ? '...' : ''}</div>
+                        ${note.folder && note.folder !== 'all' ? `<div class="note-folder">${folderName}</div>` : ''}
+                    </div>
+                    <div class="note-date">${formatDate(note.createdAt)}</div>
+                `;
+
+                // Add event listeners
+                const checkbox = noteElement.querySelector('.note-checkbox');
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleNoteSelection(note.id);
+                });
+
+                noteElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('note-checkbox')) {
+                        if (isEditMode) {
+                            toggleNoteSelection(note.id);
+                        } else {
+                            openEditModal(note.id);
+                        }
+                    }
+                });
+
+                noteElement.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    contextMenuNoteId = note.id;
+                    showContextMenu(e.clientX, e.clientY);
+                });
+
+                notesList.appendChild(noteElement);
+            });
+        }
+
+        function updateEmptyState() {
+            let noteCount = 0;
+            
+            if (currentFolder === 'all') {
+                noteCount = notes.length;
+            } else {
+                noteCount = notes.filter(note => note.folder === currentFolder).length;
+            }
+            
+            if (noteCount === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        function updateFolderCounts() {
+            folders.forEach(folder => {
+                if (folder.id === 'all') {
+                    folder.count = notes.length;
+                } else {
+                    folder.count = notes.filter(note => note.folder === folder.id).length;
+                }
+            });
+            
+            saveFoldersToLocalStorage();
+            renderFolders();
+        }
+
+        function updateFolderSelection() {
+            const folderCards = document.querySelectorAll('.folder-card');
+            folderCards.forEach(card => {
+                if (card.dataset.id === currentFolder) {
+                    card.style.transform = 'scale(0.98)';
+                    card.style.boxShadow = 'inset 0 0 0 2px #007AFF';
+                } else {
+                    card.style.transform = '';
+                    card.style.boxShadow = '';
+                }
+            });
+        }
+
+        function openEditModal(noteId = null) {
+            editingNoteId = noteId;
+            
+            if (noteId) {
+                const note = notes.find(n => n.id === noteId);
+                noteTitle.value = note.title;
+                noteContent.value = note.content;
+                noteFolder.value = note.folder || 'quick';
+                document.querySelector('.modal-title').textContent = 'Редактировать';
+            } else {
+                noteTitle.value = '';
+                noteContent.value = '';
+                noteFolder.value = 'quick';
+                document.querySelector('.modal-title').textContent = 'Новая заметка';
+            }
+            
+            editModal.classList.add('active');
+            setTimeout(() => noteTitle.focus(), 300);
+        }
+
+        function saveCurrentNote() {
+            const title = noteTitle.value.trim();
+            const content = noteContent.value.trim();
+            const folder = noteFolder.value;
+            
+            if (!title && !content) {
+                resetEditForm();
+                return;
+            }
+            
+            if (!title) {
+                noteTitle.value = 'Без названия';
+            }
+
+            const now = new Date();
+
+            if (editingNoteId) {
+                const noteIndex = notes.findIndex(n => n.id === editingNoteId);
+                notes[noteIndex] = {
+                    ...notes[noteIndex],
+                    title: title || 'Без названия',
+                    content,
+                    folder,
+                    updatedAt: now
+                };
+            } else {
+                const newNote = {
+                    id: Date.now().toString(),
+                    title: title || 'Без названия',
+                    content,
+                    folder,
+                    createdAt: now,
+                    updatedAt: now,
+                    checked: false
+                };
+                
+                notes.unshift(newNote);
+            }
+            
+            saveToLocalStorage();
+            updateFolderCounts();
+            renderNotes(searchBar.value, currentFolder);
+            updateEmptyState();
+            resetEditForm();
+        }
+
+        function resetEditForm() {
+            editingNoteId = null;
+            noteTitle.value = '';
+            noteContent.value = '';
+            noteFolder.value = 'quick';
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            
+            if (isEditMode) {
+                selectionMode.classList.add('active');
+                editButton.textContent = 'Готово';
+                document.querySelectorAll('.note-checkbox').forEach(cb => {
+                    cb.style.display = 'block';
+                });
+            } else {
+                cancelSelection();
+            }
+        }
+
+        function toggleNoteSelection(noteId) {
+            if (!isEditMode) return;
+            
+            const note = notes.find(n => n.id === noteId);
+            note.checked = !note.checked;
+            
+            if (note.checked) {
+                selectedNotes.add(noteId);
+            } else {
+                selectedNotes.delete(noteId);
+            }
+            
+            updateNoteCheckbox(noteId);
+            updateSelectionCount();
+            saveToLocalStorage();
+        }
+
+        function updateNoteCheckbox(noteId) {
+            const checkbox = document.querySelector(`.note-checkbox[data-id="${noteId}"]`);
+            const note = notes.find(n => n.id === noteId);
+            
+            if (note.checked) {
+                checkbox.classList.add('checked');
+            } else {
+                checkbox.classList.remove('checked');
+            }
+        }
+
+        function selectAllNotes() {
+            let notesToSelect = notes;
+            
+            if (currentFolder !== 'all') {
+                notesToSelect = notes.filter(note => note.folder === currentFolder);
+            }
+            
+            selectedNotes.clear();
+            notesToSelect.forEach(note => {
+                note.checked = true;
+                selectedNotes.add(note.id);
+            });
+            renderNotes(searchBar.value, currentFolder);
+            updateSelectionCount();
+            saveToLocalStorage();
+        }
+
+        function cancelSelection() {
+            isEditMode = false;
+            selectedNotes.clear();
+            notes.forEach(note => note.checked = false);
+            selectionMode.classList.remove('active');
+            editButton.textContent = 'Править';
+            renderNotes(searchBar.value, currentFolder);
+            saveToLocalStorage();
+        }
+
+        function updateSelectionCount() {
+            selectedCount.textContent = `Выбрано: ${selectedNotes.size}`;
+        }
+
+        function showContextMenu(x, y) {
+            contextMenu.style.left = `${Math.min(x, window.innerWidth - 220)}px`;
+            contextMenu.style.top = `${y}px`;
+            contextMenu.classList.add('active');
+        }
+
+        function duplicateNote(noteId) {
+            const note = notes.find(n => n.id === noteId);
+            const now = new Date();
+            const newNote = {
+                ...note,
+                id: Date.now().toString(),
+                title: `${note.title} (копия)`,
+                createdAt: now,
+                updatedAt: now,
+                checked: false
+            };
+            
+            notes.unshift(newNote);
+            saveToLocalStorage();
+            updateFolderCounts();
+            renderNotes(searchBar.value, currentFolder);
+        }
+
+        function deleteNote(noteId) {
+            if (confirm('Удалить эту заметку?')) {
+                notes = notes.filter(note => note.id !== noteId);
+                saveToLocalStorage();
+                updateFolderCounts();
+                renderNotes(searchBar.value, currentFolder);
+                updateEmptyState();
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            const diffHours = Math.floor(diff / (1000 * 60 * 60));
+            const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (diffHours < 24) {
+                return 'Сегодня';
+            } else if (diffDays === 1) {
+                return 'Вчера';
+            } else if (diffDays < 7) {
+                const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+                return `${date.getDate()} ${days[date.getDay()]}`;
+            } else {
+                return `${date.getDate()} ${date.toLocaleString('ru-RU', {month: 'short'})}`;
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('ios-notes', JSON.stringify(notes));
+        }
+
+        function saveFoldersToLocalStorage() {
+            localStorage.setItem('ios-folders', JSON.stringify(folders));
+        }
+    </script>
+</body>
+</html>
