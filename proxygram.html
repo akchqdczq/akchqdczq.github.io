@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YeetYourFiles Uploader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #666;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .url-box {
+            display: flex;
+            margin: 10px 0;
+        }
+        .url-box input {
+            flex: 1;
+        }
+        .url-box button {
+            width: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .processing { background: #d1ecf1; color: #0c5460; }
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>YeetYourFiles Uploader</h1>
+    
+    <!-- File Upload -->
+    <div class="upload-area" id="dropZone">
+        <p>📁 Click or drag files here to upload</p>
+        <input type="file" id="fileInput" style="display: none;">
+    </div>
+    
+    <!-- URL Upload -->
+    <div class="url-box">
+        <input type="text" id="urlInput" placeholder="Enter file URL...">
+        <button id="urlBtn">Upload from URL</button>
+    </div>
+    
+    <!-- Status -->
+    <div id="status" class="status"></div>
+    
+    <!-- Result -->
+    <div id="result" class="result">
+        <h3>✅ Upload Successful!</h3>
+        <p><strong>File ID:</strong> <span id="fileId"></span></p>
+        <p><strong>Short Hash:</strong> <span id="shortHash"></span></p>
+        <p><strong>URL:</strong> <span id="fileUrl"></span></p>
+        <button onclick="copyUrl()">Copy URL</button>
+        <a id="viewLink" target="_blank"><button>View File</button></a>
+    </div>
+    
+    <!-- Stats -->
+    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
+        <p><strong>Total Files:</strong> <span id="fileCount">0</span></p>
+    </div>
+
+    <script>
+        const API_URL = 'https://yyf.mubilop.com';
+        
+        // Elements
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const urlInput = document.getElementById('urlInput');
+        const urlBtn = document.getElementById('urlBtn');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#666';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#ccc';
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+            if (e.dataTransfer.files.length) {
+                uploadFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+        urlBtn.addEventListener('click', uploadFromUrl);
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') uploadFromUrl();
+        });
+        
+        // Functions
+        function showStatus(type, message) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
+        
+        function uploadFile(file) {
+            showStatus('processing', `Uploading ${file.name}...`);
+            
+            const formData = new FormData();
+            formData.append('file', file, file.name);
+            
+            fetch(`${API_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                showResult(data);
+                updateStats();
+            })
+            .catch(err => {
+                showStatus('error', 'Upload failed: ' + err.message);
+            });
+        }
+        
+        function uploadFromUrl() {
+            const url = urlInput.value.trim();
+            if (!url) return;
+            
+            showStatus('processing', 'Downloading from URL...');
+            
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const fileName = url.split('/').pop() || 'file';
+                    const file = new File([blob], fileName);
+                    uploadFile(file);
+                    urlInput.value = '';
+                })
+                .catch(err => {
+                    showStatus('error', 'Failed to download: ' + err.message);
+                });
+        }
+        
+        function showResult(data) {
+            showStatus('success', 'Upload complete!');
+            
+            document.getElementById('fileId').textContent = data.fileId;
+            document.getElementById('shortHash').textContent = data.shortHash;
+            document.getElementById('fileUrl').textContent = API_URL + data.fileUrl;
+            
+            const viewLink = document.getElementById('viewLink');
+            viewLink.href = API_URL + data.fileUrl;
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        function copyUrl() {
+            const url = document.getElementById('fileUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard!');
+            });
+        }
+        
+        function updateStats() {
+            fetch(`${API_URL}/api/count`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('fileCount').textContent = data.fileCount || 0;
+                })
+                .catch(() => {
+                    document.getElementById('fileCount').textContent = 'Error';
+                });
+        }
+        
+        // Initial stats load
+        updateStats();
+    </script>
+</body>
+</html>
