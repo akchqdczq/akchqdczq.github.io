@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Погода — Apple Weather стиль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #000;
+            font-family: -apple-system, "SF Pro Text", "SF Pro Display", Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .weather-app {
+            min-height: 100vh;
+            transition: background 0.3s ease;
+            padding: 70px 18px 40px;
+        }
+
+        .bg-placeholder {
+            background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+        }
+        .bg-clear-day { background: linear-gradient(180deg, #1E8CD9 0%, #0F5FA3 100%); }
+        .bg-clear-night { background: linear-gradient(180deg, #0B1E33 0%, #05101F 100%); }
+        .bg-clouds { background: linear-gradient(180deg, #4A6F8F 0%, #2C4A6B 100%); }
+        .bg-rain { background: linear-gradient(180deg, #2C4F6E 0%, #1A334D 100%); }
+        .bg-thunder { background: linear-gradient(180deg, #2D2F36 0%, #1A1C22 100%); }
+        .bg-snow { background: linear-gradient(180deg, #5B7A9A 0%, #2E4A6A 100%); }
+        .bg-default { background: linear-gradient(180deg, #1A2A4F 0%, #0F1A2F 100%); }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 32px;
+            border: 0.5px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .location-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+            gap: 12px;
+        }
+        .city-name {
+            font-size: 34px;
+            font-weight: 620;
+            color: white;
+            letter-spacing: -0.8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            padding: 6px 20px;
+            border-radius: 60px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+            flex-shrink: 1;
+            cursor: pointer;
+        }
+        .select-city-btn {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(20px);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            color: white;
+            font-size: 16px;
+            font-weight: 570;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.1s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .select-city-btn:active { opacity: 0.7; transform: scale(0.96); }
+
+        .date-label {
+            font-size: 17px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 470;
+            margin: 8px 0 18px 6px;
+        }
+
+        /* Минимальная анимация — только для эффекта листания */
+        .swipe-area {
+            touch-action: pan-y pinch-zoom;
+            transition: transform 0.08s ease-out;
+        }
+        .swipe-area:active {
+            transform: scale(0.99);
+        }
+
+        .main-weather-card { padding: 24px 22px; margin-bottom: 20px; cursor: grab; }
+        .main-weather-card:active { cursor: grabbing; }
+        
+        .weather-icon-temp { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .weather-emoji { width: 85px; height: 85px; }
+        .weather-emoji img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3)); }
+        .current-temp { font-size: 72px; font-weight: 700; color: white; letter-spacing: -3px; line-height: 1; }
+        .feels-like { font-size: 16px; color: rgba(255,255,255,0.7); margin-top: 6px; }
+        .condition-desc { font-size: 22px; font-weight: 540; color: white; margin-top: 20px; text-transform: capitalize; padding-top: 12px; border-top: 0.5px solid rgba(255,255,255,0.25); }
+
+        .details-row { display: flex; gap: 12px; margin-bottom: 24px; }
+        .detail-card { flex: 1; padding: 14px 8px; text-align: center; }
+        .detail-label { font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+        .detail-value { font-size: 18px; font-weight: 620; color: white; }
+
+        .forecast-section { margin-bottom: 24px; }
+        .forecast-title { font-size: 20px; font-weight: 600; color: white; margin-bottom: 16px; padding-left: 6px; }
+        .forecast-scroll { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; }
+        .forecast-scroll::-webkit-scrollbar { display: none; }
+        .forecast-item {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(24px);
+            border-radius: 28px;
+            padding: 14px 16px;
+            min-width: 110px;
+            text-align: center;
+        }
+        .forecast-day { font-size: 15px; font-weight: 590; color: white; margin-bottom: 8px; }
+        .forecast-icon { width: 44px; height: 44px; margin: 6px auto; }
+        .forecast-icon img { width: 100%; height: 100%; object-fit: contain; }
+        .forecast-temp-range { font-size: 18px; font-weight: 660; color: white; margin-top: 6px; }
+        .forecast-temp-night { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+        .what-to-wear { margin-bottom: 24px; }
+        .wear-title { font-size: 20px; font-weight: 600; color: white; margin-bottom: 12px; padding-left: 6px; }
+        .wear-card { padding: 18px 20px; }
+        .wear-content { font-size: 16px; color: white; line-height: 1.45; font-weight: 470; }
+        .wear-disclaimer { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 12px; text-align: center; border-top: 0.5px solid rgba(255,255,255,0.2); padding-top: 10px; }
+        .wear-hidden { display: none; }
+
+        .extra-section { margin-bottom: 20px; }
+        .extra-title { font-size: 20px; font-weight: 600; color: white; margin-bottom: 16px; padding-left: 6px; }
+        .extra-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .extra-item { padding: 16px 12px; text-align: center; }
+        .extra-label { font-size: 14px; color: rgba(255,255,255,0.7); letter-spacing: 0.3px; margin-bottom: 10px; }
+        .extra-value { font-size: 22px; font-weight: 640; color: white; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .extra-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 6px; }
+
+        .holiday-banner {
+            background: rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(25px);
+            border-radius: 60px;
+            padding: 10px 16px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 0.5px solid rgba(255,215,0,0.6);
+        }
+        .holiday-emoji { width: 38px; height: 38px; animation: bounce 0.8s infinite ease; }
+        .holiday-text { font-size: 18px; font-weight: 640; color: #FFE484; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+        .city-picker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(28px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s ease;
+        }
+        .city-picker-overlay.active { opacity: 1; visibility: visible; }
+        .city-picker-modal {
+            background: #1c1c1e;
+            border-radius: 28px 28px 0 0;
+            width: 100%;
+            max-width: 550px;
+            padding: 24px 20px 34px;
+            transform: translateY(100%);
+            transition: 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .active .city-picker-modal { transform: translateY(0); }
+        .city-picker-header {
+            font-size: 24px;
+            font-weight: 620;
+            text-align: center;
+            margin-bottom: 16px;
+            color: white;
+        }
+        .city-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            border-bottom: 0.5px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+        .city-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 570;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.1s;
+        }
+        .city-tab.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .city-search {
+            background: rgba(255,255,255,0.15);
+            border-radius: 36px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .city-search input {
+            background: transparent;
+            border: none;
+            font-size: 17px;
+            flex: 1;
+            outline: none;
+            color: white;
+        }
+        .city-search input::placeholder { color: rgba(255,255,255,0.5); }
+        .cities-scroll { flex: 1; overflow-y: auto; padding-right: 6px; }
+        .city-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .city-option {
+            padding: 14px 8px;
+            text-align: center;
+            border-radius: 34px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            position: relative;
+        }
+        .city-option.selected {
+            background: #007AFF;
+            color: white;
+        }
+        .city-option.pinned-city {
+            border: 2px solid #34C759;
+            background: rgba(52, 199, 89, 0.15);
+        }
+        .city-option:active { opacity: 0.7; transform: scale(0.96); }
+        .empty-pinned-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255,255,255,0.6);
+            font-size: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 28px;
+            margin: 10px;
+        }
+        .close-picker {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            padding: 14px;
+            border-radius: 34px;
+            font-size: 17px;
+            font-weight: 590;
+            width: 100%;
+            cursor: pointer;
+            color: white;
+        }
+        .refresh-tip { text-align: center; margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.45); }
+        .swipe-hint {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="weather-app bg-placeholder" id="weatherApp">
+    <div class="location-bar">
+        <div class="city-name" id="cityName">Москва</div>
+        <button class="select-city-btn" id="openCityPickerBtn">Города</button>
+    </div>
+    <div class="date-label" id="dateLabel"></div>
+    <div id="holidayBanner" style="display: none;"></div>
+
+    <div id="contentWrapper">
+        <div class="swipe-area" id="swipeArea">
+            <div class="main-weather-card glass-card">
+                <div class="weather-icon-temp">
+                    <div class="weather-emoji" id="weatherEmoji"><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Sun.webp" alt="weather"></div>
+                    <div class="temp-area"><div class="current-temp" id="currentTemp">--°</div><div class="feels-like" id="feelsLike">ощущается как --°</div></div>
+                </div>
+                <div class="condition-desc" id="conditionDesc">загрузка...</div>
+            </div>
+        </div>
+
+        <div class="details-row">
+            <div class="detail-card glass-card"><div class="detail-label">Влажность</div><div class="detail-value" id="humidityVal">--%</div></div>
+            <div class="detail-card glass-card"><div class="detail-label">Ветер</div><div class="detail-value" id="windVal">-- м/с</div></div>
+            <div class="detail-card glass-card"><div class="detail-label">Давление</div><div class="detail-value" id="pressureVal">-- мм</div></div>
+        </div>
+
+        <div class="forecast-section">
+            <div class="forecast-title">Прогноз на 7 дней</div>
+            <div class="forecast-scroll" id="forecastList"><div style="color:white;">загрузка...</div></div>
+        </div>
+
+        <div class="what-to-wear wear-hidden" id="wearSection">
+            <div class="wear-title">Что надеть</div>
+            <div class="wear-card glass-card">
+                <div class="wear-content" id="wearAdvice">Загрузка рекомендаций...</div>
+                <div class="wear-disclaimer">✨ Совет сгенерирован AI AkchAI и носит рекомендательный характер. Мы не несём ответственности за выбор одежды.</div>
+            </div>
+        </div>
+
+        <div class="extra-section">
+            <div class="extra-title">Другие сведения</div>
+            <div class="extra-grid">
+                <div class="extra-item glass-card"><div class="extra-label">Фаза луны</div><div class="extra-value" id="moonPhase">--</div><div class="extra-sub" id="moonIllum">освещённость</div></div>
+                <div class="extra-item glass-card"><div class="extra-label">Видимость</div><div class="extra-value" id="visibilityVal">-- км</div><div class="extra-sub">горизонт</div></div>
+                <div class="extra-item glass-card"><div class="extra-label">Осадки</div><div class="extra-value" id="precipVal">-- мм</div><div class="extra-sub">за 3 часа</div></div>
+                <div class="extra-item glass-card"><div class="extra-label">УФ-индекс</div><div class="extra-value" id="uviVal">--</div><div class="extra-sub">актуальный</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="swipe-hint">↻ Листайте влево/вправо по карточке погоды для смены закреплённого города</div>
+    <div class="refresh-tip">Данные могут иметь погрешности • Обновляется автоматически</div>
+</div>
+
+<div id="cityPickerOverlay" class="city-picker-overlay">
+    <div class="city-picker-modal">
+        <div class="city-picker-header">Города</div>
+        <div class="city-tabs">
+            <div class="city-tab active" data-tab="all">Все города</div>
+            <div class="city-tab" data-tab="pinned">Закреплённые</div>
+        </div>
+        <div class="city-search"><input type="text" id="citySearchInput" placeholder="Поиск"></div>
+        <div class="cities-scroll" id="citiesScrollContainer"></div>
+        <button class="close-picker" id="closePickerBtn">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ---------- ГОРОДА ----------
+    const RUSSIAN_CITIES = [
+        "Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург", "Казань", "Нижний Новгород", "Челябинск", "Самара",
+        "Омск", "Ростов-на-Дону", "Уфа", "Красноярск", "Пермь", "Воронеж", "Волгоград", "Краснодар", "Сочи", "Рыбинск"
+    ];
+    const WORLD_CAPITALS = [
+        "Лондон", "Париж", "Берлин", "Мадрид", "Рим", "Вашингтон", "Пекин", "Токио", "Сеул", "Дели", "Анкара", "Каир",
+        "Бангкок", "Сингапур", "Оттава", "Канберра", "Бразилиа", "Претория", "Мехико", "Берн", "Вена", "Брюссель", "Амстердам"
+    ];
+    const CITY_API_MAP = {
+        "Москва":"Moscow","Санкт-Петербург":"Saint Petersburg","Новосибирск":"Novosibirsk","Екатеринбург":"Yekaterinburg",
+        "Казань":"Kazan","Нижний Новгород":"Nizhny Novgorod","Челябинск":"Chelyabinsk","Самара":"Samara","Омск":"Omsk",
+        "Ростов-на-Дону":"Rostov-on-Don","Уфа":"Ufa","Красноярск":"Krasnoyarsk","Пермь":"Perm","Воронеж":"Voronezh",
+        "Волгоград":"Volgograd","Краснодар":"Krasnodar","Сочи":"Sochi","Рыбинск":"Rybinsk",
+        "Лондон":"London","Париж":"Paris","Берлин":"Berlin","Мадрид":"Madrid","Рим":"Rome","Вашингтон":"Washington",
+        "Пекин":"Beijing","Токио":"Tokyo","Сеул":"Seoul","Дели":"Delhi","Анкара":"Ankara","Каир":"Cairo","Бангкок":"Bangkok",
+        "Сингапур":"Singapore","Оттава":"Ottawa","Канберра":"Canberra","Бразилиа":"Brasilia","Претория":"Pretoria",
+        "Мехико":"Mexico City","Берн":"Bern","Вена":"Vienna","Брюссель":"Brussels","Амстердам":"Amsterdam"
+    };
+    const API_KEY = 'bd5e378503939ddaee76f12ad7a97608';
+    const AI_API_URL = "https://freeai.logise1123.workers.dev/";
+    
+    let currentCityApi = "Moscow";
+    let currentDisplayName = "Москва";
+    let pinnedCities = JSON.parse(localStorage.getItem('pinnedCities') || '[]');
+    
+    function savePinned() { localStorage.setItem('pinnedCities', JSON.stringify(pinnedCities)); }
+    
+    function addPinned(cityName) {
+        if (!pinnedCities.includes(cityName)) {
+            pinnedCities.push(cityName);
+            savePinned();
+            renderCityPicker(currentTab, document.getElementById('citySearchInput').value);
+        }
+    }
+    function removePinned(cityName) {
+        pinnedCities = pinnedCities.filter(c => c !== cityName);
+        savePinned();
+        renderCityPicker(currentTab, document.getElementById('citySearchInput').value);
+        if (cityName === currentDisplayName && pinnedCities.length > 0) {
+            selectCityDirect(pinnedCities[0]);
+        } else if (cityName === currentDisplayName && pinnedCities.length === 0) {
+            selectCityDirect("Москва");
+        }
+    }
+    
+    // Без анимации — мгновенное переключение с микро-эффектом нажатия
+    let isSwitching = false;
+    async function switchCity(cityName) {
+        if (isSwitching) return;
+        isSwitching = true;
+        
+        // Микро-эффект нажатия
+        const swipeArea = document.getElementById('swipeArea');
+        swipeArea.style.transform = 'scale(0.98)';
+        setTimeout(() => { swipeArea.style.transform = ''; }, 80);
+        
+        await selectCityDirect(cityName);
+        isSwitching = false;
+    }
+    
+    // Свайп только по блоку погоды
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let isSwiping = false;
+    
+    const swipeElement = document.getElementById('swipeArea');
+    
+    swipeElement.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        isSwiping = true;
+    });
+    
+    swipeElement.addEventListener('touchend', async (e) => {
+        if (!isSwiping) return;
+        isSwiping = false;
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchEndX - touchStartX;
+        if (Math.abs(diff) < 35) return;
+        if (pinnedCities.length === 0) return;
+        
+        let currentIdx = pinnedCities.indexOf(currentDisplayName);
+        if (currentIdx === -1 && pinnedCities.length > 0) currentIdx = 0;
+        let newIdx = currentIdx;
+        if (diff > 0) { newIdx = currentIdx - 1; if (newIdx < 0) newIdx = pinnedCities.length - 1; }
+        else { newIdx = currentIdx + 1; if (newIdx >= pinnedCities.length) newIdx = 0; }
+        if (newIdx !== currentIdx && pinnedCities[newIdx]) {
+            await switchCity(pinnedCities[newIdx]);
+        }
+    });
+    
+    swipeElement.addEventListener('touchmove', (e) => {
+        if (isSwiping && Math.abs(e.changedTouches[0].screenX - touchStartX) > 10) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    async function selectCityDirect(cityName) {
+        const apiName = CITY_API_MAP[cityName];
+        if (apiName) {
+            currentCityApi = apiName;
+            currentDisplayName = cityName;
+            document.getElementById('cityName').innerText = cityName;
+            saveCityToStorage();
+            await updateFullWeather(true);
+        }
+    }
+    
+    function getWeatherSprite(weatherId, isDay) {
+        if (weatherId >= 200 && weatherId < 300) return "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Cloud%20With%20Lightning%20And%20Rain.webp";
+        if (weatherId >= 300 && weatherId < 600) return "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Cloud%20With%20Rain.webp";
+        if (weatherId === 801 || weatherId === 802) return "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Sun%20Behind%20Small%20Cloud.webp";
+        if (weatherId === 803 || weatherId === 804) return "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Cloud%20With%20Lightning%20And%20Rain.webp";
+        if (weatherId === 800) return isDay ? "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Sun.webp" : "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Last%20Quarter%20Moon%20Face.webp";
+        return isDay ? "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Sun.webp" : "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Last%20Quarter%20Moon%20Face.webp";
+    }
+
+    function getMoonPhaseAndIllumination() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((now - start) / (1000*60*60*24));
+        const cycle = 29.53;
+        const phaseIndex = (dayOfYear % cycle) / cycle;
+        let phaseName = "Новолуние";
+        if (phaseIndex < 0.0625) phaseName = "Новолуние";
+        else if (phaseIndex < 0.1875) phaseName = "Молодой месяц";
+        else if (phaseIndex < 0.3125) phaseName = "Первая четверть";
+        else if (phaseIndex < 0.4375) phaseName = "Прибывающая";
+        else if (phaseIndex < 0.5625) phaseName = "Полнолуние";
+        else if (phaseIndex < 0.6875) phaseName = "Убывающая";
+        else if (phaseIndex < 0.8125) phaseName = "Последняя четверть";
+        else phaseName = "Старая луна";
+        const illumination = Math.round(Math.sin((phaseIndex * Math.PI * 2)) * 50 + 50);
+        return { phase: phaseName, illum: illumination + "%" };
+    }
+
+    function getVisibilityFromTemp(temp) {
+        if (temp < -10) return "10 км";
+        if (temp < 0) return "8 км";
+        if (temp < 15) return "12 км";
+        return "18 км";
+    }
+    function getPrecipFromWeatherId(weatherId) {
+        if (weatherId >= 200 && weatherId < 600) return "2.5 мм";
+        if (weatherId >= 600 && weatherId < 700) return "1.2 мм";
+        if (weatherId === 801 || weatherId === 802) return "0.1 мм";
+        if (weatherId === 800) return "0 мм";
+        return "0.3 мм";
+    }
+    function getUviFromTempAndClouds(temp, clouds, isDay) {
+        if (!isDay) return "0";
+        let uvi = 2;
+        if (temp > 25 && clouds < 20) uvi = 8;
+        else if (temp > 20 && clouds < 40) uvi = 6;
+        else if (temp > 15 && clouds < 60) uvi = 4;
+        else if (clouds > 70) uvi = 1;
+        else uvi = 3;
+        return uvi.toString();
+    }
+
+    function updateBackground(weatherId, isDay) {
+        const app = document.getElementById('weatherApp');
+        app.classList.remove('bg-placeholder', 'bg-clear-day','bg-clear-night','bg-clouds','bg-rain','bg-thunder','bg-snow','bg-default');
+        if (weatherId === 800 && isDay) app.classList.add('bg-clear-day');
+        else if (weatherId === 800 && !isDay) app.classList.add('bg-clear-night');
+        else if (weatherId >= 801 && weatherId <= 804) app.classList.add('bg-clouds');
+        else if (weatherId >= 300 && weatherId < 600) app.classList.add('bg-rain');
+        else if (weatherId >= 200 && weatherId < 300) app.classList.add('bg-thunder');
+        else if (weatherId >= 600 && weatherId < 700) app.classList.add('bg-snow');
+        else app.classList.add('bg-default');
+    }
+
+    async function generateWearAdvice(temp, feelsLike, condition, windSpeed) {
+        const prompt = `Ты помощник по выбору одежды. Погода: температура ${temp}°C, ощущается как ${feelsLike}°C, ${condition}, ветер ${windSpeed} м/с. Дай короткий совет (1-2 предложения) что надеть. Без лишних слов, только рекомендация.`;
+        try {
+            const response = await fetch(AI_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "llama-3.1-8b-instruct-fast",
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
+            const data = await response.json();
+            return data?.choices?.[0]?.message?.content || null;
+        } catch(e) {
+            return null;
+        }
+    }
+
+    function getHoliday() {
+        const d = new Date();
+        const y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
+        if (m===2 && day===8) return { name:"8 Марта", emoji:"https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Bouquet.webp" };
+        if (m===4 && day===1) return { name:"1 Мая", emoji:"https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Beetle.webp" };
+        if (y===2026 && m===3 && day===12) return { name:"Пасха", emoji:"https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Hatching%20Chick.webp" };
+        if (m===10) { let lastSun = new Date(y,10,30); let dow = lastSun.getDay(); let lastSunday = dow===0?30:30-dow; if(day===lastSunday) return { name:"День матери", emoji:"https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Bouquet.webp" }; }
+        return null;
+    }
+    function showHoliday() {
+        const h = getHoliday();
+        const banner = document.getElementById('holidayBanner');
+        if (h) {
+            banner.style.display = 'block';
+            banner.innerHTML = `<div class="holiday-banner"><div class="holiday-emoji"><img src="${h.emoji}" width="36" height="36"></div><div class="holiday-text">✨ ${h.name} ✨</div></div>`;
+            document.getElementById('cityName').innerText = h.name;
+        } else { banner.style.display = 'none'; document.getElementById('cityName').innerText = currentDisplayName; }
+    }
+
+    async function fetchCurrent(cityApi) {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityApi}&appid=${API_KEY}&units=metric&lang=ru`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Ошибка ${resp.status}`);
+        return await resp.json();
+    }
+    async function fetchForecast(cityApi) {
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${cityApi}&appid=${API_KEY}&units=metric&lang=ru`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Ошибка прогноза`);
+        return await resp.json();
+    }
+
+    function saveCityToStorage() { localStorage.setItem('lastWeatherCity', JSON.stringify({ api: currentCityApi, display: currentDisplayName })); }
+    function loadCityFromStorage() {
+        const saved = localStorage.getItem('lastWeatherCity');
+        if (saved) {
+            try {
+                const { api, display } = JSON.parse(saved);
+                currentCityApi = api;
+                currentDisplayName = display;
+                document.getElementById('cityName').innerText = display;
+            } catch(e) {}
+        }
+    }
+
+    async function updateFullWeather(forceRefresh = false) {
+        try {
+            const weather = await fetchCurrent(currentCityApi);
+            const forecast = await fetchForecast(currentCityApi);
+            await applyWeatherData(weather, forecast);
+        } catch(e) {
+            console.error(e);
+            document.getElementById('currentTemp').innerHTML = '--°';
+            document.getElementById('conditionDesc').innerHTML = 'Ошибка API';
+        }
+    }
+
+    async function applyWeatherData(weather, forecast) {
+        const temp = Math.round(weather.main.temp);
+        const feels = Math.round(weather.main.feels_like);
+        const humidity = weather.main.humidity;
+        const wind = Math.round(weather.wind.speed * 10) / 10;
+        const pressure = Math.round(weather.main.pressure * 0.75006);
+        const desc = weather.weather[0].description;
+        const weatherId = weather.weather[0].id;
+        const hours = new Date().getHours();
+        const isDay = hours >= 6 && hours < 19;
+        const clouds = weather.clouds?.all || 0;
+
+        document.getElementById('currentTemp').innerHTML = `${temp}°`;
+        document.getElementById('feelsLike').innerHTML = `ощущается как ${feels}°`;
+        document.getElementById('humidityVal').innerHTML = `${humidity}%`;
+        document.getElementById('windVal').innerHTML = `${wind} м/с`;
+        document.getElementById('pressureVal').innerHTML = `${pressure} мм`;
+        document.getElementById('conditionDesc').innerHTML = desc;
+        document.querySelector('#weatherEmoji img').src = getWeatherSprite(weatherId, isDay);
+        updateBackground(weatherId, isDay);
+
+        const moon = getMoonPhaseAndIllumination();
+        document.getElementById('moonPhase').innerHTML = moon.phase;
+        document.getElementById('moonIllum').innerHTML = moon.illum;
+        document.getElementById('visibilityVal').innerHTML = getVisibilityFromTemp(temp);
+        document.getElementById('precipVal').innerHTML = getPrecipFromWeatherId(weatherId);
+        document.getElementById('uviVal').innerHTML = getUviFromTempAndClouds(temp, clouds, isDay);
+
+        const wearSection = document.getElementById('wearSection');
+        wearSection.classList.add('wear-hidden');
+        const advice = await generateWearAdvice(temp, feels, desc, wind);
+        if (advice) {
+            document.getElementById('wearAdvice').innerHTML = advice;
+            wearSection.classList.remove('wear-hidden');
+        }
+
+        // Прогноз 7 дней
+        const dailyMap = new Map();
+        for (let item of forecast.list) {
+            const date = item.dt_txt.split(' ')[0];
+            const hour = parseInt(item.dt_txt.split(' ')[1].split(':')[0]);
+            if (!dailyMap.has(date)) {
+                dailyMap.set(date, { dayTemp: null, nightTemp: null, icon: item.weather[0].id, dt: item.dt });
+            }
+            const entry = dailyMap.get(date);
+            if (hour >= 12 && hour <= 15) entry.dayTemp = item.main.temp;
+            if (hour >= 0 && hour <= 3) entry.nightTemp = item.main.temp;
+            if (entry.dayTemp === null && hour >= 10 && hour <= 18) entry.dayTemp = item.main.temp;
+            if (entry.nightTemp === null && (hour >= 21 || hour <= 5)) entry.nightTemp = item.main.temp;
+        }
+        const days = Array.from(dailyMap.entries()).slice(1, 8);
+        const fcDiv = document.getElementById('forecastList');
+        fcDiv.innerHTML = '';
+        for (let [date, val] of days) {
+            let dayDate = new Date(val.dt*1000);
+            let weekday = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][dayDate.getDay()];
+            let dayTemp = val.dayTemp ? Math.round(val.dayTemp) : '--';
+            let nightTemp = val.nightTemp ? Math.round(val.nightTemp) : '--';
+            let iconUrl = getWeatherSprite(val.icon, true);
+            let div = document.createElement('div'); div.className = 'forecast-item';
+            div.innerHTML = `
+                <div class="forecast-day">${weekday} ${dayDate.getDate()}/${dayDate.getMonth()+1}</div>
+                <div class="forecast-icon"><img src="${iconUrl}"></div>
+                <div class="forecast-temp-range">${dayTemp}° / ${nightTemp}°</div>
+                <div class="forecast-temp-night">днём / ночью</div>
+            `;
+            fcDiv.appendChild(div);
+        }
+        showHoliday();
+    }
+
+    function updateDate() {
+        const now = new Date();
+        document.getElementById('dateLabel').innerHTML = now.toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' }).replace(/^./, l=>l.toUpperCase());
+    }
+
+    let currentTab = 'all';
+    function renderCityPicker(tab, filter = "") {
+        const container = document.getElementById('citiesScrollContainer');
+        container.innerHTML = '';
+        const filterLower = filter.toLowerCase();
+        const filterFunc = (name) => name.toLowerCase().includes(filterLower);
+        
+        if (tab === 'all') {
+            const pinnedSet = new Set(pinnedCities);
+            const allCities = [...RUSSIAN_CITIES, ...WORLD_CAPITALS];
+            const pinnedList = allCities.filter(c => pinnedSet.has(c) && filterFunc(c));
+            const otherList = allCities.filter(c => !pinnedSet.has(c) && filterFunc(c));
+            const citiesToShow = [...pinnedList, ...otherList];
+            
+            if (citiesToShow.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:white;">Ничего не найдено</div>';
+                return;
+            }
+            const grid = document.createElement('div');
+            grid.className = 'city-grid';
+            citiesToShow.forEach(city => {
+                let btn = document.createElement('div'); 
+                btn.className = 'city-option';
+                if (city === currentDisplayName) btn.classList.add('selected');
+                if (pinnedCities.includes(city)) btn.classList.add('pinned-city');
+                btn.innerText = city;
+                setupLongPress(btn, city);
+                btn.addEventListener('click', () => { selectCity(city); });
+                grid.appendChild(btn);
+            });
+            container.appendChild(grid);
+        } else {
+            if (pinnedCities.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.className = 'empty-pinned-message';
+                emptyMsg.innerHTML = '📌 Нет закреплённых городов<br><span style="font-size:13px;">Чтобы закрепить — зажмите нужный город в списке "Все города"</span>';
+                container.appendChild(emptyMsg);
+                return;
+            }
+            const filteredPinned = pinnedCities.filter(filterFunc);
+            if (filteredPinned.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:white;">Ничего не найдено</div>';
+                return;
+            }
+            const grid = document.createElement('div');
+            grid.className = 'city-grid';
+            filteredPinned.forEach(city => {
+                let btn = document.createElement('div'); 
+                btn.className = 'city-option pinned-city';
+                if (city === currentDisplayName) btn.classList.add('selected');
+                btn.innerText = city;
+                setupLongPress(btn, city);
+                btn.addEventListener('click', () => { selectCity(city); });
+                grid.appendChild(btn);
+            });
+            container.appendChild(grid);
+        }
+    }
+    
+    function setupLongPress(btn, city) {
+        let pressTimer;
+        btn.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => {
+                if (pinnedCities.includes(city)) {
+                    if (confirm(`Открепить город ${city}?`)) {
+                        removePinned(city);
+                        renderCityPicker(currentTab, document.getElementById('citySearchInput').value);
+                    }
+                } else {
+                    if (confirm(`Закрепить город ${city}?`)) {
+                        addPinned(city);
+                        renderCityPicker(currentTab, document.getElementById('citySearchInput').value);
+                    }
+                }
+            }, 500);
+        });
+        btn.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+        btn.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
+        btn.addEventListener('click', (e) => { clearTimeout(pressTimer); });
+    }
+    
+    async function selectCity(cityName) {
+        const apiName = CITY_API_MAP[cityName];
+        if (apiName) {
+            await switchCity(cityName);
+            closeCityPicker();
+        }
+    }
+    
+    function openCityPicker() { 
+        document.getElementById('cityPickerOverlay').classList.add('active'); 
+        renderCityPicker(currentTab, '');
+    }
+    function closeCityPicker() { document.getElementById('cityPickerOverlay').classList.remove('active'); }
+    
+    document.getElementById('openCityPickerBtn').onclick = openCityPicker;
+    document.getElementById('closePickerBtn').onclick = closeCityPicker;
+    const searchInput = document.getElementById('citySearchInput');
+    searchInput.addEventListener('input', (e) => renderCityPicker(currentTab, e.target.value));
+    document.querySelectorAll('.city-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.city-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTab = tab.dataset.tab;
+            renderCityPicker(currentTab, searchInput.value);
+        });
+    });
+    
+    loadCityFromStorage();
+    updateDate();
+    updateFullWeather(false);
+    setInterval(() => { updateDate(); updateFullWeather(true); }, 30*60*1000);
+    setInterval(updateDate, 60000);
+</script>
+</body>
+</html>
