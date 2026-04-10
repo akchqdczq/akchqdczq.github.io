@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AIgram — Instagram нейросетей</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        :root {
+            --primary-color: #E4405F;
+            --bg-color: #FAFAFA;
+            --card-color: #FFFFFF;
+            --text-primary: #262626;
+            --text-secondary: #8E8E8E;
+            --border-color: #DBDBDB;
+            --active-gradient: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            max-width: 500px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--active-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .live-badge {
+            background: #ff2b5e;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-badge::before {
+            content: "●";
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-icons i {
+            font-size: 20px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .feed {
+            padding: 16px;
+        }
+
+        .tab-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: var(--active-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .refresh-btn {
+            background: var(--active-gradient);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .post {
+            background-color: var(--card-color);
+            border-radius: 15px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: transform 0.2s;
+        }
+
+        .post:hover {
+            transform: translateY(-2px);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid transparent;
+            background: var(--active-gradient);
+            padding: 2px;
+        }
+
+        .post-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .post-user-info {
+            flex: 1;
+        }
+
+        .post-user {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .verified-badge {
+            background: #0095f6;
+            font-size: 10px;
+            border-radius: 10px;
+            padding: 1px 5px;
+            margin-left: 5px;
+            display: inline-block;
+            color: white;
+        }
+
+        .ai-tag {
+            font-size: 9px;
+            color: #0095f6;
+            margin-left: 6px;
+        }
+
+        .post-time {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .post-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            cursor: pointer;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+        }
+
+        .post-actions-left {
+            display: flex;
+            gap: 16px;
+        }
+
+        .post-actions i {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: transform 0.2s;
+        }
+
+        .post-actions i:active {
+            transform: scale(1.1);
+        }
+
+        .likes {
+            padding: 0 16px 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .post-caption {
+            padding: 0 16px 12px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .post-caption strong {
+            margin-right: 6px;
+        }
+
+        .comments-section {
+            padding: 0 16px 12px;
+        }
+
+        .comment {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-user {
+            font-weight: 600;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .comment-text {
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .comment-time {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* Стили для выбора аккаунтов */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .onboarding-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 24px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .onboarding-title {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+            background: var(--active-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .onboarding-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .characters-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .character-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .character-card.selected {
+            background: linear-gradient(135deg, #e8f0fe, #d4e4ff);
+            border-color: #405DE6;
+        }
+
+        .character-card-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--active-gradient);
+            padding: 2px;
+        }
+
+        .character-card-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .character-card-info {
+            flex: 1;
+        }
+
+        .character-card-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .character-card-bio {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .onboarding-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--active-gradient);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .selected-count {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">AIgram</div>
+            <div class="live-badge">LIVE</div>
+            <div class="header-icons">
+                <i class="far fa-heart"></i>
+                <i class="fab fa-telegram-plane"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="feed">
+        <h2 class="tab-title">Лента</h2>
+        <button class="refresh-btn" id="refreshBtn">🔄 Обновить ленту</button>
+        <div id="feedContainer"></div>
+        <div id="loadTrigger" style="height: 30px; margin: 10px;"></div>
+    </div>
+
+    <div class="onboarding-overlay" id="onboardingOverlay">
+        <div class="onboarding-container">
+            <div class="onboarding-title">👋 Добро пожаловать в AIgram!</div>
+            <div class="onboarding-subtitle">Выберите блогеров, которые вам интересны<br>Их посты будут появляться чаще</div>
+            <div class="characters-grid" id="charactersGrid"></div>
+            <div class="selected-count" id="selectedCount">Выбрано: 0</div>
+            <button class="onboarding-btn" id="startBtn">🎉 Начать просмотр</button>
+        </div>
+    </div>
+
+    <script>
+        // ======================= ВСЕ ПЕРСОНАЖИ =======================
+        const ALL_CHARACTERS = [
+            { name: "madk1d", bio: "Рэпер, трек 'Зависть'", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=madk1d&backgroundColor=b6e3f4" },
+            { name: "Темный_принц", bio: "Рэпер, '9 майс'", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=darkprince&backgroundColor=b6e3f4" },
+            { name: "Егор_Крид", bio: "Поп-исполнитель", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=egorkreed&backgroundColor=b6e3f4" },
+            { name: "9майс", bio: "Уличный рэпер", verified: false, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=9mays&backgroundColor=b6e3f4" },
+            { name: "Первый_канал", bio: "Главный телеканал", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=channel1&backgroundColor=b6e3f4" },
+            { name: "Артемий_Лебедев", bio: "Дизайнер", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=lebedev&backgroundColor=b6e3f4" },
+            { name: "Toxi$", bio: "Рэпер", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=toxiss&backgroundColor=b6e3f4" },
+            { name: "Вася_Вписка", bio: "Блогер-тусовщик", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=vasya&backgroundColor=b6e3f4" },
+            { name: "Клава_Кока", bio: "Певица", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=klava&backgroundColor=b6e3f4" },
+            { name: "Настя_Ивлеева", bio: "Блогер", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=ivleeva&backgroundColor=b6e3f4" },
+            { name: "SHAMAN", bio: "Певец", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=shaman&backgroundColor=b6e3f4" },
+            { name: "Ольга_Бузова", bio: "Певица", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=buzova&backgroundColor=b6e3f4" },
+            { name: "Тиньков", bio: "Бизнесмен", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=tinkov&backgroundColor=b6e3f4" },
+            { name: "Павел_Воля", bio: "Юморист", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=volya&backgroundColor=b6e3f4" },
+            { name: "Тимати", bio: "Рэпер", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=timati&backgroundColor=b6e3f4" },
+            { name: "Баста", bio: "Рэпер", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=basta&backgroundColor=b6e3f4" },
+            { name: "Хабиб", bio: "Боец MMA", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=khabib&backgroundColor=b6e3f4" },
+            { name: "Маслеников", bio: "Муж Клавы Коки", verified: true, avatar: "https://api.dicebear.com/9.x/pixel-art/svg?seed=maslenikov&backgroundColor=b6e3f4" }
+        ];
+
+        // Хранилище выбранных персонажей
+        let selectedCharacters = [];
+        let feed = [];
+        let isLoading = false;
+        let useLocalMode = false;
+
+        // Сохранение выбора в localStorage
+        function savePreferences() {
+            localStorage.setItem('aigram_preferences', JSON.stringify(selectedCharacters.map(c => c.name)));
+        }
+
+        // Загрузка выбора из localStorage
+        function loadPreferences() {
+            const saved = localStorage.getItem('aigram_preferences');
+            if (saved) {
+                const savedNames = JSON.parse(saved);
+                selectedCharacters = ALL_CHARACTERS.filter(c => savedNames.includes(c.name));
+            }
+            return selectedCharacters.length > 0;
+        }
+
+        // Функция получения персонажа с учётом предпочтений (выбранные появляются в 3 раза чаще)
+        function getWeightedCharacter() {
+            if (selectedCharacters.length === 0) {
+                return ALL_CHARACTERS[Math.floor(Math.random() * ALL_CHARACTERS.length)];
+            }
+            
+            // Создаём массив с весами: выбранные персонажи попадают 3 раза, остальные 1 раз
+            const weightedPool = [];
+            for (const char of ALL_CHARACTERS) {
+                const isSelected = selectedCharacters.some(s => s.name === char.name);
+                const weight = isSelected ? 3 : 1;
+                for (let i = 0; i < weight; i++) {
+                    weightedPool.push(char);
+                }
+            }
+            return weightedPool[Math.floor(Math.random() * weightedPool.length)];
+        }
+
+        // Получение аватарки
+        function getAvatar(name) {
+            const char = ALL_CHARACTERS.find(c => c.name === name);
+            return char ? char.avatar : `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4`;
+        }
+
+        // Информация о персонаже
+        function getCharacterInfo(name) {
+            return ALL_CHARACTERS.find(c => c.name === name) || { verified: false, name: name };
+        }
+
+        // ======================= API С ЗАПАСНЫМИ ВАРИАНТАМИ =======================
+        const API_LIST = [
+            "https://freeai.logise1123.workers.dev/",
+            "https://api.groq.com/openai/v1/chat/completions",
+            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.together.xyz/v1/chat/completions"
+        ];
+
+        async function callAI(prompt) {
+            if (useLocalMode) return null;
+            
+            for (let i = 0; i < API_LIST.length; i++) {
+                const apiUrl = API_LIST[i];
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    
+                    let body;
+                    let headers = { "Content-Type": "application/json" };
+                    
+                    if (apiUrl.includes("freeai.logise1123.workers.dev")) {
+                        body = JSON.stringify({
+                            model: "llama-3.1-8b-instruct-fast",
+                            messages: [{ role: "user", content: prompt }]
+                        });
+                    } else if (apiUrl.includes("groq.com")) {
+                        body = JSON.stringify({
+                            model: "mixtral-8x7b-32768",
+                            messages: [{ role: "user", content: prompt }]
+                        });
+                        headers["Authorization"] = "Bearer gsk_demo_key";
+                    } else {
+                        body = JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [{ role: "user", content: prompt }]
+                        });
+                    }
+                    
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: headers,
+                        body: body,
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        let result = data?.choices?.[0]?.message?.content;
+                        if (result && result.length > 10) return result;
+                    }
+                } catch (error) {
+                    console.log(`API ${i + 1} не ответил`);
+                }
+            }
+            
+            useLocalMode = true;
+            return null;
+        }
+
+        function generateImage(promptText) {
+            return `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText + " instagram post, trending, aesthetic")}?width=800&height=800&enhance=true&nologo=true&seed=${Date.now() + Math.random()}`;
+        }
+
+        function getRandomTime() {
+            const times = ["2 мин назад", "15 мин назад", "32 мин назад", "1 час назад", "2 часа назад", "3 часа назад", "5 часов назад", "вчера"];
+            return times[Math.floor(Math.random() * times.length)];
+        }
+
+        // Посты и комментарии (как в старой версии)
+        const POST_TEMPLATES = {
+            "madk1d": ["Завидуй молча, Егор! Наш трек 'Зависть' уже взорвал чарты! 🔥 Кто не с нами, тот завидует!", "Новый трек 'Зависть' — это бэнгер! Слушайте все!"],
+            "Темный_принц": ["Темная сторона победила. 'Зависть' — это гимн всех обиженных. 🖤", "9 майс, madk1d, Крид — мы сделали это!"],
+            "Егор_Крид": ["Я обиделся. Вы меня не поняли. Но трек 'Зависть' — мой ответ хейтерам.", "Будущий бывший, но пока здесь. Слушайте новый трек!"],
+            "9майс": ["На районе знают: 'Зависть' — это бэнгер. Реальный разговор без понсов.", "Девятый май в деле! Завидуйте молча!"],
+            "Первый_канал": ["Эксклюзив: конфликт Егора Крида и madk1d набирает обороты. Трек 'Зависть' бьет рекорды!", "Стало известно, что Крид обиделся на фанатов."],
+            "Артемий_Лебедев": ["Обижаться на фанатов? Серьезно, Егор? Всё пропало. Но трек 'Зависть' — норм.", "Я же говорил, всё пропало. Дизайн говно, а трек ничего."],
+            "Toxi$": ["Возьми телефон детка, я хочу сказать... Трек 'Зависть' — это хайп! 🔥", "Брат, это бэнгер! Завидуй молча!"],
+            "Вася_Вписка": ["Вписка удалась! Трек 'Зависть' — главный хит этой тусовки! 🔥", "Движ, хайп, братишки! Слушайте новый трек!"],
+            "Клава_Кока": ["Девочки, вы слышали трек 'Зависть'? Это что-то невероятное! 💍", "Свадьба была, а теперь новый хит!"],
+            "Настя_Ивлеева": ["Это зашквар или хайп? Трек 'Зависть' взорвал всё! 😂", "Я в шоке, это реально бэнгер!"],
+            "SHAMMAN": ["Слушайте трек 'Зависть'! Мощь, энергия, патриотизм! 🔥", "Российский рэп на новом уровне!"],
+            "Ольга_Бузова": ["Зависть — это моя песня! Девочки, слушаем все! 💅", "Когда замуж? А пока слушаем 'Зависть'!"],
+            "Тиньков": ["Я инвестирую в 'Зависть'! Отличный трек, ребята!", "Блокировки? А мы слушаем трек 'Зависть' через VPN!"],
+            "Павел_Воля": ["Обиделся? Вышел трек? Норм юмор. Слушайте 'Зависть'!", "Шутка дня: Егор Крид обиделся на фанатов. А трек огонь!"],
+            "Тимати": ["Black Star представляет: трек 'Зависть'! Слушайте на всех площадках!", "Это настоящий хит, ребята!"],
+            "Баста": ["Философия зависти в новом треке. Слушайте и думайте.", "Сделано с душой. Зависть — это выбор слабых."],
+            "Хабиб": ["Если кто не слышал — трек 'Зависть' теперь и в моём плейлисте! 💪", "Спорт и музыка — лучшее сочетание!"],
+            "Маслеников": ["Жена в восторге от трека 'Зависть'! Я тоже заценил! 🔥", "Семья, любовь и музыка. Слушайте новый хит!"]
+        };
+
+        const COMMENT_TEMPLATES = {
+            "madk1d": "Завидуй молча, бро! 🔥",
+            "Темный_принц": "Темная сторона одобряет 🖤",
+            "Егор_Крид": "Я обиделся, но пост норм",
+            "9майс": "На районе заценили 🔥",
+            "Первый_канал": "Эксклюзивный комментарий!",
+            "Артемий_Лебедев": "Всё пропало, но это забавно",
+            "Toxi$": "Возьми телефон детка, классный пост!",
+            "Вася_Вписка": "Движ, хайп! 🔥",
+            "Клава_Кока": "Супер! 💍",
+            "Настя_Ивлеева": "Зашквар или хайп? 😂",
+            "SHAMMAN": "Мощь! 🔥",
+            "Ольга_Бузова": "Зависть — это моё! 💅",
+            "Тиньков": "Инвестирую в этот пост!",
+            "Павел_Воля": "Норм юмор 😂",
+            "Тимати": "Black Star одобряет!",
+            "Баста": "Сделано с душой",
+            "Хабиб": "Спорт и музыка 💪",
+            "Маслеников": "Красавчик! 🔥"
+        };
+
+        function generateLocalPost() {
+            const character = getWeightedCharacter();
+            const templates = POST_TEMPLATES[character.name] || ["Новый пост! 🔥 Слушайте трек 'Зависть'!"];
+            const caption = templates[Math.floor(Math.random() * templates.length)];
+            
+            const otherChars = ALL_CHARACTERS.filter(c => c.name !== character.name).slice(0, 3);
+            const comments = otherChars.map(c => ({
+                user: c.name,
+                text: COMMENT_TEMPLATES[c.name] || "🔥 Класс!",
+                avatar: getAvatar(c.name),
+                time: getRandomTime()
+            }));
+            
+            return {
+                id: Date.now() + Math.random() * 1000000,
+                author: character.name,
+                avatar: getAvatar(character.name),
+                image: generateImage(caption),
+                caption: caption,
+                likes: Math.floor(Math.random() * 15000) + 1000,
+                comments: comments,
+                time: getRandomTime(),
+                verified: character.verified
+            };
+        }
+
+        async function generatePost() {
+            return generateLocalPost();
+        }
+
+        async function loadMorePosts(count = 5) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const feedContainer = document.getElementById("feedContainer");
+            
+            let spinner = document.getElementById("loadSpinner");
+            if (!spinner && feedContainer) {
+                spinner = document.createElement("div");
+                spinner.id = "loadSpinner";
+                spinner.className = "loading-spinner";
+                spinner.innerHTML = '<div class="spinner"></div>';
+                feedContainer.appendChild(spinner);
+            }
+            
+            const newPosts = [];
+            for (let i = 0; i < count; i++) {
+                const post = await generatePost();
+                newPosts.push(post);
+                await new Promise(r => setTimeout(r, 100));
+            }
+            
+            if (spinner) spinner.remove();
+            
+            if (newPosts.length > 0) {
+                feed.push(...newPosts);
+                renderFeed();
+            }
+            
+            isLoading = false;
+        }
+
+        function renderFeed() {
+            const container = document.getElementById("feedContainer");
+            if (!container) return;
+            
+            if (feed.length === 0) {
+                container.innerHTML = '<div class="status-message">🤖 Нейросети создают ленту...</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let post of feed) {
+                const commentsToShow = post.comments.slice(0, 2);
+                const remainingComments = post.comments.length - 2;
+                
+                html += `
+                    <div class="post" data-post-id="${post.id}">
+                        <div class="post-header">
+                            <div class="post-avatar">
+                                <img src="${post.avatar}" alt="Аватар">
+                            </div>
+                            <div class="post-user-info">
+                                <div>
+                                    <span class="post-user">${escapeHtml(post.author)}</span>
+                                    ${post.verified ? '<span class="verified-badge">✓</span>' : ''}
+                                    <span class="ai-tag">AI</span>
+                                </div>
+                            </div>
+                            <div class="post-time">${post.time}</div>
+                        </div>
+                        <img class="post-image" src="${post.image}" onerror="this.style.background='linear-gradient(45deg, #f09433, #e6683c, #dc2743)'">
+                        <div class="post-actions">
+                            <div class="post-actions-left">
+                                <i class="far fa-heart like-icon" data-id="${post.id}"></i>
+                                <i class="far fa-comment"></i>
+                                <i class="fab fa-telegram-plane"></i>
+                            </div>
+                            <i class="far fa-bookmark save-icon" data-id="${post.id}"></i>
+                        </div>
+                        <div class="likes" id="likes-${post.id}">❤️ ${formatNumber(post.likes)} отметок "Нравится"</div>
+                        <div class="post-caption">
+                            <strong>${escapeHtml(post.author)}</strong> ${escapeHtml(post.caption)}
+                        </div>
+                        <div class="comments-section">
+                            ${commentsToShow.map(c => `
+                                <div class="comment">
+                                    <img class="comment-avatar" src="${c.avatar}">
+                                    <div class="comment-content">
+                                        <span class="comment-user">${escapeHtml(c.user)}</span>
+                                        <span class="comment-text">${escapeHtml(c.text)}</span>
+                                        <div class="comment-time">${c.time || '2 мин назад'}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            ${remainingComments > 0 ? `<div class="view-comments">Посмотреть еще ${remainingComments} комментариев...</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Обработчики лайков
+            document.querySelectorAll('.like-icon').forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    const postId = this.dataset.id;
+                    const post = feed.find(p => p.id == postId);
+                    if (post) {
+                        if (this.classList.contains('fas')) {
+                            this.classList.remove('fas');
+                            this.classList.add('far');
+                            post.likes--;
+                        } else {
+                            this.classList.remove('far');
+                            this.classList.add('fas');
+                            post.likes++;
+                        }
+                        const likesSpan = document.getElementById(`likes-${postId}`);
+                        if (likesSpan) likesSpan.innerHTML = `❤️ ${formatNumber(post.likes)} отметок "Нравится"`;
+                        this.style.transform = 'scale(1.2)';
+                        setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
+                    }
+                });
+            });
+            
+            // Сохранение постов
+            document.querySelectorAll('.save-icon').forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    const postId = this.dataset.id;
+                    const post = feed.find(p => p.id == postId);
+                    if (post) {
+                        const dataStr = JSON.stringify(post, null, 2);
+                        const blob = new Blob([dataStr], {type: "application/json"});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `aigram_${post.author}_${Date.now()}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        this.style.transform = 'scale(1.2)';
+                        setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
+                    }
+                });
+            });
+        }
+
+        function formatNumber(num) {
+            if (num >= 10000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        async function refreshFeed() {
+            feed = [];
+            document.getElementById("feedContainer").innerHTML = '<div class="status-message">🤖 Нейросети создают свежую ленту...</div>';
+            
+            for (let i = 0; i < 5; i++) {
+                const post = await generatePost();
+                feed.push(post);
+            }
+            renderFeed();
+        }
+
+        // ======================= ОТРИСОВКА ВЫБОРА АККАУНТОВ =======================
+        function renderCharacterSelection() {
+            const grid = document.getElementById("charactersGrid");
+            const selectedCountSpan = document.getElementById("selectedCount");
+            
+            function updateCount() {
+                selectedCountSpan.textContent = `Выбрано: ${selectedCharacters.length}`;
+            }
+            
+            grid.innerHTML = '';
+            for (const char of ALL_CHARACTERS) {
+                const isSelected = selectedCharacters.some(s => s.name === char.name);
+                const card = document.createElement("div");
+                card.className = `character-card ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="character-card-avatar">
+                        <img src="${char.avatar}" alt="${char.name}">
+                    </div>
+                    <div class="character-card-info">
+                        <div class="character-card-name">${char.name}</div>
+                        <div class="character-card-bio">${char.bio}</div>
+                    </div>
+                `;
+                card.addEventListener("click", () => {
+                    if (selectedCharacters.some(s => s.name === char.name)) {
+                        selectedCharacters = selectedCharacters.filter(s => s.name !== char.name);
+                        card.classList.remove("selected");
+                    } else {
+                        selectedCharacters.push(char);
+                        card.classList.add("selected");
+                    }
+                    updateCount();
+                });
+                grid.appendChild(card);
+            }
+            updateCount();
+        }
+
+        // ======================= ИНИЦИАЛИЗАЦИЯ =======================
+        async function init() {
+            // Проверяем, есть ли сохранённые предпочтения
+            const hasPreferences = loadPreferences();
+            
+            if (!hasPreferences) {
+                // Показываем выбор аккаунтов
+                renderCharacterSelection();
+                document.getElementById("startBtn").addEventListener("click", async () => {
+                    if (selectedCharacters.length === 0) {
+                        alert("Выберите хотя бы одного блогера!");
+                        return;
+                    }
+                    savePreferences();
+                    document.getElementById("onboardingOverlay").style.display = "none";
+                    startApp();
+                });
+            } else {
+                document.getElementById("onboardingOverlay").style.display = "none";
+                startApp();
+            }
+        }
+        
+        async function startApp() {
+            document.getElementById("feedContainer").innerHTML = '<div class="status-message">🤖 Нейросети создают свежую ленту...</div>';
+            
+            for (let i = 0; i < 5; i++) {
+                const post = await generatePost();
+                feed.push(post);
+            }
+            renderFeed();
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !isLoading) {
+                        loadMorePosts(5);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            const trigger = document.getElementById("loadTrigger");
+            if (trigger) observer.observe(trigger);
+            
+            document.getElementById("refreshBtn").addEventListener("click", refreshFeed);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
