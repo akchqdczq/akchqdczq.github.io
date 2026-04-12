@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Pin Brawl — Установка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .os-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Общий стиль главного экрана (Android и iOS) */
+        .main-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        .main-content {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 28px;
+            object-fit: contain;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .studio-names {
+            font-size: 14px;
+            color: #8e8e93;
+            font-weight: 500;
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+
+        .download-button {
+            background: var(--button-color);
+            color: white;
+            border: none;
+            width: 220px;
+            height: 54px;
+            font-size: 17px;
+            font-weight: 700;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .download-button:active { transform: scale(0.96); }
+
+        /* АНИМАЦИЯ УСТАНОВКИ (Android-стиль, с прогрессом) */
+        .install-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .install-overlay.active { opacity: 1; visibility: visible; }
+        .install-card {
+            background: var(--secondary-bg);
+            width: 280px;
+            border-radius: 28px;
+            padding: 28px 20px;
+            text-align: center;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        }
+        .install-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            object-fit: contain;
+            margin-bottom: 16px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: var(--progress-bg);
+            border-radius: 10px;
+            margin: 20px 0 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--button-color);
+            border-radius: 10px;
+            transition: width 0.15s linear;
+        }
+        .install-status {
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* iOS — плавный стек */
+        .ios-stack {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .ios-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: translateX(100%);
+            will-change: transform;
+            z-index: 10;
+        }
+        .ios-page.active {
+            transform: translateX(0);
+            z-index: 20;
+        }
+        .ios-page.prev {
+            transform: translateX(-30%);
+            z-index: 5;
+        }
+        .back-button {
+            position: sticky;
+            top: 16px;
+            left: 16px;
+            width: 44px;
+            height: 44px;
+            background: rgba(120, 120, 128, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 16px 0 0 16px;
+            z-index: 30;
+            transition: background 0.2s;
+        }
+        .back-button:active { background: rgba(120, 120, 128, 0.4); }
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-color);
+            stroke-width: 2;
+        }
+        .ios-page-content {
+            max-width: 340px;
+            margin: 0 auto;
+            padding: 20px 24px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .welcome-header { text-align: center; }
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .welcome-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .instruction-steps { display: flex; flex-direction: column; gap: 16px; }
+        .step {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .step-title {
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .step-number {
+            background: var(--button-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .step-text {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-left: 32px;
+            line-height: 1.4;
+        }
+        .ios-continue-button {
+            background: var(--button-color);
+            color: white;
+            border: none;
+            width: 100%;
+            height: 52px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .ios-continue-button:active { transform: scale(0.97); }
+        .security-text {
+            font-size: 12px;
+            color: #8e8e93;
+            text-align: left;
+            line-height: 1.45;
+            padding: 0;
+        }
+        .file-cards { display: flex; flex-direction: column; gap: 16px; }
+        .file-card {
+            background: var(--secondary-bg);
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .file-card:active { transform: scale(0.98); }
+        .file-info { display: flex; align-items: center; gap: 14px; }
+        .file-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            object-fit: cover;
+        }
+        .file-details { display: flex; flex-direction: column; }
+        .file-name { font-size: 16px; font-weight: 600; }
+        .file-desc { font-size: 12px; color: #8e8e93; }
+        .download-badge {
+            background: var(--button-color);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .support-link-blue {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+        }
+        .support-link-blue a {
+            color: var(--button-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .custom-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 14px 20px;
+            text-align: center;
+            color: white;
+            font-size: 15px;
+            z-index: 10000;
+            animation: fadeInUp 0.3s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .test-panel-bottom {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 9999;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .test-emojibtn {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 30px;
+            transition: background 0.2s;
+        }
+        .test-emojibtn.active {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 0 0 2px var(--button-color);
+        }
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --secondary-bg: #f2f2f7;
+            --button-color: #007aff;
+            --progress-bg: #e0e0e0;
+        }
+        .theme-dark {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --secondary-bg: #1c1c1e;
+            --button-color: #0a84ff;
+            --progress-bg: #2c2c2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="os-container" id="osContainer"></div>
+    <div class="test-panel-bottom">
+        <button class="test-emojibtn" id="forceAndroidEmoji">🤖</button>
+        <button class="test-emojibtn" id="forceIOSEmoji">📱</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        function applyTheme() {
+            const theme = tg.themeParams;
+            const isDark = tg.colorScheme === 'dark';
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', theme.bg_color || (isDark ? '#000' : '#fff'));
+            root.style.setProperty('--text-color', theme.text_color || (isDark ? '#fff' : '#000'));
+            root.style.setProperty('--secondary-bg', theme.secondary_bg_color || (isDark ? '#1c1c1e' : '#f2f2f7'));
+            root.style.setProperty('--button-color', theme.button_color || (isDark ? '#0a84ff' : '#007aff'));
+            if (isDark) document.body.classList.add('theme-dark');
+            else document.body.classList.remove('theme-dark');
+        }
+        applyTheme();
+        tg.onEvent('themeChanged', applyTheme);
+
+        let forcedOS = null;
+        function getEffectiveOS() {
+            if (forcedOS) return forcedOS;
+            const ua = navigator.userAgent;
+            if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+            if (/android/i.test(ua)) return 'android';
+            return 'android';
+        }
+
+        // Ссылки (замените на реальные!)
+        const APK_URL = "https://example.com/pinbrawl.apk";
+        const IPA_URL = "https://example.com/pinbrawl.ipa";
+        const IMAZING_URL = "https://imazing.com/";
+        const SUPPORT_URL = "https://t.me/akch2";
+
+        function showToast(msg, duration=2500) {
+            let t = document.querySelector('.custom-toast');
+            if(t) t.remove();
+            let toast = document.createElement('div'); toast.className = 'custom-toast'; toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        // === АНИМАЦИЯ СКАЧИВАНИЯ (Android-стиль, с прогрессом) ===
+        function startDownloadAnimation(url, filename, appName = "Pin Brawl", logoUrl = "https://raw.githubusercontent.com/bahrstars/bahrstars.github.io/refs/heads/main/GameFiles/Other/Logo.png") {
+            return new Promise((resolve) => {
+                // Проверка на тестовую ссылку
+                if (!url || url.includes("example.com")) {
+                    showToast("⚠️ Тестовая ссылка. Замените на реальный файл.");
+                    resolve(false);
+                    return;
+                }
+                // Создаём оверлей с анимацией
+                const overlay = document.createElement('div');
+                overlay.className = 'install-overlay';
+                overlay.innerHTML = `
+                    <div class="install-card">
+                        <img src="${logoUrl}" class="install-logo">
+                        <div style="font-weight:700; font-size:20px;">${appName}</div>
+                        <div class="progress-bar-container"><div class="progress-fill" id="animProgressFill"></div></div>
+                        <div class="install-status" id="animStatus">Подготовка...</div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                const fill = overlay.querySelector('#animProgressFill');
+                const status = overlay.querySelector('#animStatus');
+                let progress = 0;
+                fill.style.width = '0%';
+                overlay.classList.add('active');
+                
+                // Имитация прогресса (0 → 70%)
+                const interval = setInterval(() => {
+                    if (progress < 70) {
+                        progress += Math.floor(Math.random() * 12) + 3;
+                        if (progress > 70) progress = 70;
+                        fill.style.width = `${progress}%`;
+                        if (progress >= 70) status.innerText = 'Скачивание...';
+                    } else {
+                        clearInterval(interval);
+                        // Реальное скачивание файла
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        // Добиваем прогресс до 100%
+                        let finalProgress = 70;
+                        const finishInt = setInterval(() => {
+                            if (finalProgress < 100) {
+                                finalProgress += 5;
+                                fill.style.width = `${finalProgress}%`;
+                                if (finalProgress >= 100) {
+                                    clearInterval(finishInt);
+                                    status.innerText = 'Готово!';
+                                    setTimeout(() => {
+                                        overlay.classList.remove('active');
+                                        setTimeout(() => overlay.remove(), 300);
+                                        resolve(true);
+                                    }, 800);
+                                }
+                            } else {
+                                clearInterval(finishInt);
+                            }
+                        }, 70);
+                    }
+                }, 160);
+            });
+        }
+
+        // ---------------------- ANDROID ----------------------
+        function buildAndroid() {
+            const container = document.getElementById('osContainer');
+            container.innerHTML = `
+                <div class="main-screen">
+                    <div class="main-content">
+                        <img src="https://raw.githubusercontent.com/bahrstars/bahrstars.github.io/refs/heads/main/GameFiles/Other/Logo.png" class="logo">
+                        <div class="app-title">Pin Brawl</div>
+                        <div class="studio-names">Студия Бахра & akch studio</div>
+                        <button class="download-button" id="androidDownloadBtn">СКАЧАТЬ</button>
+                    </div>
+                </div>
+            `;
+            const btn = document.getElementById('androidDownloadBtn');
+            btn.onclick = () => startDownloadAnimation(APK_URL, 'pinbrawl.apk', 'Pin Brawl');
+        }
+
+        // ---------------------- iOS (главная как у Android, кнопка открывает инструкцию) ----------------------
+        function buildIOS() {
+            const container = document.getElementById('osContainer');
+            container.innerHTML = `
+                <div id="mainScreenIOS" class="main-screen">
+                    <div class="main-content">
+                        <img src="https://raw.githubusercontent.com/bahrstars/bahrstars.github.io/refs/heads/main/GameFiles/Other/Logo.png" class="logo">
+                        <div class="app-title">Pin Brawl</div>
+                        <div class="studio-names">Студия Бахра & akch studio</div>
+                        <button class="download-button" id="iosOpenInstructionsBtn">СКАЧАТЬ</button>
+                    </div>
+                </div>
+
+                <div id="iosStack" class="ios-stack" style="display: none;">
+                    <!-- Страница 1: Инструкция (без кнопки "Домой", только "Назад" невидима на первом экране) -->
+                    <div id="pageInstructions" class="ios-page active">
+                        <div class="back-button" id="backFromInstructions" style="visibility: hidden; opacity:0; pointer-events:none;"></div>
+                        <div class="ios-page-content">
+                            <div class="welcome-header">
+                                <img src="https://raw.githubusercontent.com/bahrstars/bahrstars.github.io/refs/heads/main/GameFiles/Other/Logo.png" class="welcome-icon">
+                                <div class="welcome-title">Инструкция по установке</div>
+                            </div>
+                            <div class="instruction-steps">
+                                <div class="step"><div class="step-title"><span class="step-number">1</span>Скачайте файлы</div><div class="step-text">В архиве, прикрепленном ниже, вы найдёте IPA-файл игры и ссылку на установщик iMazing</div></div>
+                                <div class="step"><div class="step-title"><span class="step-number">2</span>Загрузите файлы на компьютер</div><div class="step-text">Установите iMazing на ПК. Свяжите iMazing с iPhone и загрузите IPA-файл игры.</div></div>
+                                <div class="step"><div class="step-title"><span class="step-number">3</span>Завершите установку</div><div class="step-text">Подключите iPhone по проводу и установите приложение через iMazing.</div></div>
+                            </div>
+                            <button class="ios-continue-button" id="continueToFilesBtn">ПРОДОЛЖИТЬ</button>
+                            <div class="security-text">
+                                Указывать Apple ID для установки Pin Brawl через iMazing безопасно, если программа установлена с официального сайта и используется в соответствии с рекомендациями разработчика.<br><br>
+                                Компания DigiDNA (разработчик iMazing) утверждает, что при работе с учётной записью Apple ID пароль никуда не передаётся, и компания не получает к нему доступа. Pin Brawl не несёт ответственность за установку приложения через непроверенных установщиков.<br><br>
+                                Нажимая «Продолжить», вы соглашаетесь с политикой конфиденциальности Pin Brawl.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Страница 2: Файлы для установки (есть кнопка "Назад") -->
+                    <div id="pageFiles" class="ios-page">
+                        <div class="back-button" id="backFromFiles">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                        </div>
+                        <div class="ios-page-content">
+                            <div class="welcome-header">
+                                <div class="welcome-title">Файлы для установки</div>
+                            </div>
+                            <div class="file-cards">
+                                <div class="file-card" id="ipaCard">
+                                    <div class="file-info">
+                                        <img src="https://raw.githubusercontent.com/bahrstars/bahrstars.github.io/refs/heads/main/GameFiles/Other/Logo.png" class="file-avatar">
+                                        <div class="file-details">
+                                            <div class="file-name">Pin Brawl.ipa</div>
+                                            <div class="file-desc">IPA-файл игры</div>
+                                        </div>
+                                    </div>
+                                    <div class="download-badge">Скачать</div>
+                                </div>
+                                <div class="file-card" id="imazingCard">
+                                    <div class="file-info">
+                                        <img src="https://i.postimg.cc/9FR2z93q/Bez-nazvania1438-20260412162137.png" class="file-avatar" style="object-fit: contain;">
+                                        <div class="file-details">
+                                            <div class="file-name">iMazing</div>
+                                            <div class="file-desc">Официальный установщик для ПК</div>
+                                        </div>
+                                    </div>
+                                    <div class="download-badge">Перейти</div>
+                                </div>
+                            </div>
+                            <div class="support-link-blue">
+                                <a href="${SUPPORT_URL}" target="_blank">Есть ошибки? Обращайтесь в поддержку</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const mainScreen = document.getElementById('mainScreenIOS');
+            const stack = document.getElementById('iosStack');
+            const pageInstructions = document.getElementById('pageInstructions');
+            const pageFiles = document.getElementById('pageFiles');
+            const openBtn = document.getElementById('iosOpenInstructionsBtn');
+            const continueBtn = document.getElementById('continueToFilesBtn');
+            const backFiles = document.getElementById('backFromFiles');
+            const ipaCard = document.getElementById('ipaCard');
+            const imazingCard = document.getElementById('imazingCard');
+
+            // Функция плавного перехода между страницами
+            function goToPage(fromPage, toPage) {
+                toPage.classList.add('active');
+                fromPage.classList.remove('active');
+                fromPage.classList.add('prev');
+                setTimeout(() => {
+                    fromPage.classList.remove('prev');
+                }, 350);
+            }
+
+            // Открыть стек (скрыть главный экран, показать инструкцию)
+            openBtn.onclick = () => {
+                mainScreen.style.display = 'none';
+                stack.style.display = 'block';
+                // Сброс состояния: показываем инструкцию, файлы скрыты
+                pageInstructions.classList.add('active');
+                pageFiles.classList.remove('active');
+                pageFiles.classList.remove('prev');
+                pageInstructions.classList.remove('prev');
+                pageInstructions.scrollTop = 0;
+                pageFiles.scrollTop = 0;
+            };
+
+            // Переход к файлам
+            continueBtn.onclick = () => {
+                goToPage(pageInstructions, pageFiles);
+            };
+
+            // Назад из файлов в инструкцию
+            backFiles.onclick = () => {
+                goToPage(pageFiles, pageInstructions);
+            };
+
+            // Свайп назад на странице файлов
+            let touchStartX = 0;
+            pageFiles.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+            pageFiles.addEventListener('touchend', (e) => {
+                let endX = e.changedTouches[0].screenX;
+                if (endX - touchStartX > 70) {
+                    goToPage(pageFiles, pageInstructions);
+                }
+            });
+            // Свайп вперёд на инструкции (для навигации)
+            pageInstructions.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+            pageInstructions.addEventListener('touchend', (e) => {
+                let endX = e.changedTouches[0].screenX;
+                if (touchStartX - endX > 70) {
+                    goToPage(pageInstructions, pageFiles);
+                }
+            });
+
+            // === СКАЧИВАНИЕ IPA С АНИМАЦИЕЙ (как на Android) ===
+            ipaCard.onclick = () => {
+                if (IPA_URL.includes('example.com')) {
+                    showToast("📦 Ссылка на IPA временно не настроена. Замените IPA_URL в коде.");
+                } else {
+                    startDownloadAnimation(IPA_URL, 'PinBrawl.ipa', 'Pin Brawl');
+                }
+            };
+
+            imazingCard.onclick = () => {
+                window.open(IMAZING_URL, '_blank');
+                showToast("Открываем iMazing.com");
+            };
+        }
+
+        function render() {
+            const os = getEffectiveOS();
+            if (os === 'android') buildAndroid();
+            else buildIOS();
+            setTimeout(() => applyTheme(), 20);
+        }
+
+        // Тестовая панель
+        const androidEmoji = document.getElementById('forceAndroidEmoji');
+        const iosEmoji = document.getElementById('forceIOSEmoji');
+        function setActiveEmoji(os) {
+            if (os === 'android') { androidEmoji.classList.add('active'); iosEmoji.classList.remove('active'); }
+            else { iosEmoji.classList.add('active'); androidEmoji.classList.remove('active'); }
+        }
+        androidEmoji.onclick = () => { forcedOS = 'android'; setActiveEmoji('android'); render(); };
+        iosEmoji.onclick = () => { forcedOS = 'ios'; setActiveEmoji('ios'); render(); };
+        
+        const initial = getEffectiveOS();
+        setActiveEmoji(initial);
+        render();
+    </script>
+</body>
+</html>
